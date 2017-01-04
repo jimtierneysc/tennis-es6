@@ -1,0 +1,36 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "main": "app.js",
+  "scripts": {
+    "compile": "babel --presets es2015,stage-0 --plugins transform-runtime --source-maps -d lib/ src/",
+    "compile:watch": "babel --watch --presets es2015,stage-0 --plugins transform-runtime --source-maps -d lib/ src/",
+    "run": "babel-node app.js",
+    "xxbuild": "babel . -d .dist --ignore=\"node_modules\" --source-maps",
+    "xxtest": "npm run compile && mocha --compilers js:babel-register",
+    "test": "mocha --compilers js:babel-register"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.14.45",
+    "babel-cli": "^6.18.0",
+    "babel-core": "^6.20.0",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-latest": "^6.16.0",
+    "babel-preset-stage-0": "^6.16.0",
+    "babel-register": "^6.18.0",
+    "chai": "^4.0.0-canary.1",
+    "mocha": "^3.2.0"
+  },
+  "xxbabel": {
+    "presets": [
+      "latest",
+      "stage-0"
+    ],
+    "plugins": [
+      "transform-runtime"
+    ]
+  },
+  "dependencies": {
+    "inquirer": "^2.0.0"
+  }
+}
