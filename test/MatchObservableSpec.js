@@ -87,7 +87,7 @@ describe('matchObservable', () => {
             describe('unsubscribes', () => {
                 beforeEach(() => {
                     testCase.unSubscribe.apply(matchObservable, [onChange]);
-                    change(null);
+                    change(new Object());
                 });
 
                 it('should not emit', () => {

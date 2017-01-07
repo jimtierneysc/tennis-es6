@@ -1,14 +1,14 @@
-
 // import {MatchStrategy} from './match-commandStrategy'
 
 
 class MatchCommand {
-    constructor(strategy) {
-        this._commandStrategy = strategy;
+    constructor(strategies, title) {
+        this._strategies = strategies;
+        this._title = title;
     }
 
-    get strategy() {
-        return this._commandStrategy;
+    get strategies() {
+        return this._strategies;
     }
 
     execute() {
@@ -20,223 +20,188 @@ class MatchCommand {
     }
 
     get title() {
-        return this.constructor.name;
+        return this._title;
     }
 
 }
 
 class StartWarmup extends MatchCommand {
 
-    constructor(strategy) {
-        super(strategy);
+    constructor(strategies) {
+        super(strategies, 'start warmup');
     }
 
     execute() {
-        this.strategy.startWarmup();
+        this.strategies.matchCommandStrategy.startWarmup();
 
     }
 
     undo() {
-        this.strategy.undoStartWarmup();
+        this.strategies.matchCommandStrategy.undoStartWarmup();
 
-    }
-
-    get title() {
-        return 'start warmup'
     }
 
 }
 
 class StartPlay extends MatchCommand {
-    constructor(strategy, server) {
-        super(strategy);
+    constructor(strategies, server) {
+        super(strategies, `start play ${server}`);
         this._server = server;
     }
 
     execute() {
-        this.strategy.startPlay(this._server)
+        this.strategies.matchCommandStrategy.startPlay(this._server)
     }
 
     undo() {
-        this.strategy.undoStartPlay()
+        this.strategies.matchCommandStrategy.undoStartPlay(this._server)
     }
 
     get server() {
         return this._server;
     }
-
-    get title() {
-        return `start play ${this.server}`
-    }
-
 }
 
 class WinGame extends MatchCommand {
-    constructor(strategy, winnerId) {
-        super(strategy);
+    constructor(strategies, winnerId) {
+        super(strategies,
+            `win game[${strategies.setGameCommandStrategy.game.index}] by ${winnerId}`);
         // console.log(`winner: ${winnerId}`);
+
         this._winnerId = winnerId;
     }
 
     execute() {
-        this.strategy.winGame(this.winnerId);
+        this.strategies.setGameCommandStrategy.winGame(this.winnerId);
     }
 
     undo() {
-        this.strategy.undoWinGame();
+        this.strategies.matchSetCommandStrategy.undoWinGame();
     }
 
     get winnerId() {
         return this._winnerId;
     }
-
-    get title() {
-        return `win game ${this.winnerId}`
-    }
-
 }
 
 class WinSetTiebreak extends MatchCommand {
-    constructor(strategy, winnerId) {
-        super(strategy);
+    constructor(strategies, winnerId) {
+        super(strategies, `win set[${strategies.matchSetCommandStrategy.matchSet.index}] tiebreak by ${winnerId}`);
         this._winnerId = winnerId;
     }
 
     execute() {
-        this.strategy.winGame(this.winnerId);
+        this.strategies.setGameCommandStrategy.winGame(this.winnerId);
     }
 
     undo() {
-        this.strategy.undoWinGame();
+        this.strategies.matchSetCommandStrategy.undoWinGame();
     }
 
     get winnerId() {
         return this._winnerId;
-    }
-
-    get title() {
-        return `win set tiebreak ${this.winnerId}`
     }
 
 }
 
 class WinMatchTiebreak extends MatchCommand {
-    constructor(strategy, winnerId) {
-        super(strategy);
+    constructor(strategies, winnerId) {
+        super(strategies, `win match tiebreak ${winnerId}`);
         this._winnerId = winnerId;
     }
 
     execute() {
-        this.strategy.winGame(this.winnerId);
+        this.strategies.setGameCommandStrategy.winGame(this.winnerId);
     }
 
     undo() {
-        this.strategy.undoWinGame();
+        this.strategies.matchSetCommandStrategy.undoWinGame();
     }
 
     get winnerId() {
         return this._winnerId;
     }
-
-    get title() {
-        return `win match tiebreak ${this.winnerId}`
-    }
 }
 
 class StartGame extends MatchCommand {
-    constructor(strategy, server) {
-        super(strategy);
+    constructor(strategies, server) {
+        let title = `start game[${strategies.matchSetCommandStrategy.matchSet.games.count}]`;
+        super(strategies, (server) ? `{$title} ${server}` : title);
         this._server = server;
     }
 
     execute() {
-        this.strategy.startGame(this._server);
+        this.strategies.matchSetCommandStrategy.startGame(this._server);
     }
 
     undo() {
-        this.strategy.undoStartGame(this._server);
+        this.strategies.matchSetCommandStrategy.undoStartGame(this._server);
     }
 
     get server() {
         return this._server;
     }
 
-    get title() {
-        return (this.server) ? `start game ${this.server}` : 'start game';
-    }
-
 }
 
 class StartSetTiebreak extends MatchCommand {
-    constructor(strategy) {
-        super(strategy);
+    constructor(strategies) {
+        super(strategies, `start set[${strategies.matchSetCommandStrategy.matchSet.index}] tiebreak`);
     }
 
     execute() {
-        this.strategy.startSetTiebreak();
+        this.strategies.matchSetCommandStrategy.startSetTiebreak();
     }
 
     undo() {
-        this.strategy.undoStartSetTiebreak();
-    }
-
-    get title() {
-        return 'start set tiebreak';
+        this.strategies.matchSetCommandStrategy.undoStartSetTiebreak();
     }
 
 }
 
 class StartMatchTiebreak extends MatchCommand {
-    constructor(strategy, server) {
-        super(strategy);
+    constructor(strategies) {
+        super(strategies, 'start match tiebreak');
     }
 
     execute() {
-        this.strategy.startMatchTiebreak();
+        this.strategies.matchCommandStrategy.startMatchTiebreak();
     }
 
     undo() {
-        this.strategy.undoStartMatchTiebreak();
-    }
-
-    get title() {
-        return 'start match tiebreak';
+        this.strategies.matchCommandStrategy.undoStartMatchTiebreak();
     }
 
 }
 
 class StartSet extends MatchCommand {
-    constructor(strategy) {
-        super(strategy);
+    constructor(strategies) {
+        super(strategies, `start set[${strategies.matchCommandStrategy.match.sets.count}]`);
     }
 
     execute() {
-        this.strategy.startSet()
+        this.strategies.matchCommandStrategy.startSet()
     }
 
     undo() {
-        this.strategy.undoStartSet()
-    }
-
-    get title() {
-        // TODO: Set ordinal
-        return `start set`
+        this.strategies.matchCommandStrategy.undoStartSet()
     }
 
 }
 
 // Other commands
 class UndoOperation {
-    constructor(fn) {
-        this.fn = fn;
+    constructor(invoker) {
+        this.invoker = invoker;
+        this._title = `undo ${invoker.undoableCommand.title}`;
     }
 
     execute() {
-        this.fn();
+        this.invoker.undo(this);
     }
 
     get title() {
-        return 'undo'
+        return this._title;
     }
 }
 
@@ -254,8 +219,10 @@ class StartOver {
     }
 }
 
-export {StartWarmup, StartPlay,
+export {
+    StartWarmup, StartPlay,
     StartSet, StartMatchTiebreak,
     StartGame, StartSetTiebreak, WinMatchTiebreak,
-    WinGame, WinSetTiebreak, StartOver, UndoOperation}
+    WinGame, WinSetTiebreak, StartOver, UndoOperation
+}
 

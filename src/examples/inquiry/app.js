@@ -2,17 +2,18 @@
 import inquirer from 'inquirer';
 import {matchFactory} from '../../match/match-factory';
 import {matchObservable} from '../../match/match-observable';
+import {Match} from '../../match/match-entity';
 
 class PlayMatch {
 
     constructor(match) {
         this.match = match;
         matchObservable.subscribeScores((entity)=> {
-            console.log(`${entity.constructor.name} score: ${JSON.stringify(entity.scores)}`)
+            console.log(`${entity.constructor.name}, index: ${entity.index}, score: ${JSON.stringify(entity.scores)}`)
 
         });
         matchObservable.subscribeWinner((entity)=> {
-            console.log(`${entity.constructor.name} winner: ${JSON.stringify(entity.winnerId)}`)
+            console.log(`${entity.constructor.name}, index: ${entity.index}, winner: ${JSON.stringify(entity.winnerId)}`)
        });
         this.map = new Map();
         this.showMainMenu = true;
@@ -27,11 +28,17 @@ class PlayMatch {
 
     }
 
+
+    showHistory() {
+        console.log(JSON.stringify(this.match.commandInvoker.historyQueue));
+    }
+
     updateQuestions() {
         this.questions.choices = [];
         this.map.clear();
         if (this.showMainMenu) {
             this.map.set('play', () => this.showMainMenu = false);
+            this.map.set('history', () => this.showHistory());
             this.map.set('quit', () => this.done = true);
         } else {
             let commands = Array.prototype.concat(
@@ -40,7 +47,6 @@ class PlayMatch {
                 [...this.match.matchCommands()],
                 [...this.match.otherCommands()]);
             for (let c of commands) {
-                // this.questions.choices.push(c.title);
                 this.map.set(c.title, () => this.match.commandInvoker.invoke(c));
             }
             this.map.set('menu', () => this.showMainMenu = true);
@@ -57,6 +63,9 @@ class PlayMatch {
     }
 
     _play() {
+        // this.match.dispose();
+        // this.match = matchFactory.makeMatchFromValue(JSON.parse(JSON.stringify(this.match.match.value)));
+        console.log(JSON.stringify(this.match.match.value));
         this.updateQuestions();
         inquirer.prompt(this.questions).then((answers) => {
             // console.log(answers);

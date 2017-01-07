@@ -29,6 +29,18 @@ class MatchFactory {
 
     }
 
+    makeMatchFromValue(value) {
+
+        // TODO: Get kinds for elsewhere
+
+        let strategy = new MatchStrategy([]); // TODO: get from match value
+        let match = strategy.createMatch(value);
+        let commandStrategy = strategy.createCommandStrategy(match);
+        let commandInvoker = new MatchCommandInvoker();  // TODO: load invoker
+        return new PlayableMatch(match, commandStrategy, commandInvoker);
+
+    }
+
     // makeMatch(value) {
     //
     //     return makeMatch(value.kind, value.scoring);

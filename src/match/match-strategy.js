@@ -25,9 +25,11 @@ class MatchStrategy {
     }
 
     // TODO: Move to a strategy
-    createMatch() {
-        let match = new Match();
-        this.addPlayers(match);
+    createMatch(value) {
+        let match = new Match(value);
+        if (!value) {
+            this.addPlayers(match);
+        }
         return match;
 
     }
@@ -66,8 +68,7 @@ class MatchStrategy {
 
 }
 
-class CommandStrategy {
-
+class StrategyFactory {
     constructor(match, matchStrategy) {
         this._match = match;
         this._matchStrategy = matchStrategy;
@@ -78,11 +79,122 @@ class CommandStrategy {
     }
 
     dispose() {
-        [this._matchCommandStrategy, this._matchCommandStrategy, this._matchCommandStrategy, this._servingStrategy].forEach((value)=> {
+        [this._matchCommandStrategy, this._matchCommandStrategy, this._matchCommandStrategy, this._servingStrategy].forEach((value) => {
             if (value) {
                 value.dispose();
             }
         });
+    }
+
+    get characteristics() {
+        return this.matchStrategy.characteristics;
+    }
+
+    get match() {
+        return this._match;
+    }
+
+    // get singles() {
+    //     return this.matchStrategy.singles;
+    // }
+    //
+    // get doubles() {
+    //     return this.matchStrategy.doubles;
+    // }
+
+    get matchStrategy() {
+        return this._matchStrategy;
+    }
+
+    // get activeSet() {
+    //     return this.matchCommandStrategy.activeSet;
+    // }
+    //
+    // get activeGame() {
+    //     return this.matchSetCommandStrategy.activeGame;
+    // }
+
+    get servingStrategy() {
+        if (!this._servingStrategy) {
+            this._servingStrategy = new ServingStrategy(this, this.characteristics, this.match.opponents,
+                this.match.servers);
+        }
+        return this._servingStrategy;
+    }
+
+    get matchCommandStrategy() {
+        if (!this._matchCommandStrategy) {
+            this._matchCommandStrategy = new MatchCommandStrategy(this, this.match, this.characteristics);
+        }
+        return this._matchCommandStrategy;
+    }
+
+    get setGameCommandStrategy() {
+        if (!this._setGameCommandStrategy || this._setGameCommandStrategy.game != this.lastGame) {
+            if (this._setGameCommandStrategy) this._setGameCommandStrategy.dispose();
+            this._setGameCommandStrategy = new GameCommandStrategy(this, this.lastGame, this.match.opponents);
+        }
+        return this._setGameCommandStrategy;
+    }
+
+    get matchSetCommandStrategy() {
+        if (!this._matchSetCommandStrategy || this._matchSetCommandStrategy.matchSet != this.lastSet) {
+            if (this._matchSetCommandStrategy) this._matchSetCommandStrategy.dispose();
+            this._matchSetCommandStrategy = new SetCommandStrategy(this, this.lastSet);
+        }
+        return this._matchSetCommandStrategy;
+    }
+
+    get lastGame() {
+        let lastSet = this.lastSet;
+        if (lastSet) {
+            return lastSet.games.last;
+        }
+    }
+
+    get activeGame() {
+        let lastGame = this.lastGame;
+        if (lastGame && lastGame.inProgress) {
+            return lastGame;
+        }
+    }
+
+    get activeSet() {
+        let lastSet = this.lastSet;
+        if (lastSet && lastSet.inProgress) {
+            return lastSet;
+        }
+    }
+
+    get lastSet() {
+        return this.match.sets.last;
+    }
+
+}
+
+class CommandStrategy {
+
+    constructor(match, matchStrategy) {
+        this._match = match;
+        this._matchStrategy = matchStrategy;
+        this._strategyFactory = new StrategyFactory(match, matchStrategy);
+        // this._matchCommandStrategy = undefined;
+        // this._matchCommandStrategy = undefined;
+        // this._matchCommandStrategy = undefined;
+        // this._servingStrategy = undefined;
+    }
+
+    dispose() {
+        this.strategyFactory.dispose;
+        // [this._matchCommandStrategy, this._matchCommandStrategy, this._matchCommandStrategy, this._servingStrategy].forEach((value)=> {
+        //     if (value) {
+        //         value.dispose();
+        //     }
+        // });
+    }
+
+    get strategyFactory() {
+        return this._strategyFactory;
     }
 
     get characteristics() {
@@ -105,44 +217,61 @@ class CommandStrategy {
         return this._matchStrategy;
     }
 
-    get activeSet() {
-        return this.matchCommandStrategy.activeSet;
-    }
+    // get activeSet() {
+    //     return this.strategyFactory.matchCommandStrategy.activeSet;
+    // }
+    //
+    // get activeGame() {
+    //     return this.strategyFactory.matchSetCommandStrategy.activeGame;
+    // }
 
-    get activeGame() {
-        return this.matchSetCommandStrategy.activeGame;
-    }
+    // get servingStrategy() {
+    //     if (!this._servingStrategy) {
+    //         this._servingStrategy = new ServingStrategy(this.characteristics, this.match.opponents,
+    //             this.match.servers);
+    //     }
+    //     return this._servingStrategy;
+    // }
+    //
+    // get matchCommandStrategy() {
+    //     if (!this._matchCommandStrategy) {
+    //         this._matchCommandStrategy = new MatchCommandStrategy(this);
+    //     }
+    //     return this._matchCommandStrategy;
+    // }
+    //
+    // get setGameCommandStrategy() {
+    //     if (!this._setGameCommandStrategy || this._setGameCommandStrategy.game != this.activeGame) {
+    //         if (this._setGameCommandStrategy) this._setGameCommandStrategy.dispose();
+    //         this._setGameCommandStrategy = new GameCommandStrategy(this.activeGame, this.match.opponents, this.matchSetCommandStrategy);
+    //     }
+    //     return this._setGameCommandStrategy;
+    // }
+    //
+    // get matchSetCommandStrategy() {
+    //     if (!this._matchSetCommandStrategy || this._matchSetCommandStrategy.matchSet != this.activeSet) {
+    //         if (this._matchSetCommandStrategy) this._matchSetCommandStrategy.dispose();
+    //         this._matchSetCommandStrategy = new SetCommandStrategy(this.activeSet, this.servingStrategy, this.matchCommandStrategy);
+    //     }
+    //     return this._matchSetCommandStrategy;
+    // }
 
     get servingStrategy() {
-        if (!this._servingStrategy) {
-            this._servingStrategy = new ServingStrategy(this.characteristics, this.match.opponents,
-                this.match.servers);
-        }
-        return this._servingStrategy;
+        return this.strategyFactory.servingStrategy;
     }
 
     get matchCommandStrategy() {
-        if (!this._matchCommandStrategy) {
-            this._matchCommandStrategy = new MatchCommandStrategy(this);
-        }
-        return this._matchCommandStrategy;
+        return this.strategyFactory.matchCommandStrategy;
     }
 
     get setGameCommandStrategy() {
-        if (!this._setGameCommandStrategy || this._setGameCommandStrategy.game != this.activeGame) {
-            if (this._setGameCommandStrategy) this._setGameCommandStrategy.dispose();
-            this._setGameCommandStrategy = new GameCommandStrategy(this.activeGame, this.match.opponents, this.matchSetCommandStrategy);
-        }
-        return this._setGameCommandStrategy;
+        return this.strategyFactory.setGameCommandStrategy;
     }
 
     get matchSetCommandStrategy() {
-        if (!this._matchSetCommandStrategy || this._matchSetCommandStrategy.matchSet != this.activeSet) {
-            if (this._matchSetCommandStrategy) this._matchSetCommandStrategy.dispose();
-            this._matchSetCommandStrategy = new SetCommandStrategy(this.activeSet, this.servingStrategy, this.matchCommandStrategy);
-        }
-        return this._matchSetCommandStrategy;
+        return this.strategyFactory.matchSetCommandStrategy;
     }
+
 
     matchCommands() {
         return this.matchCommandStrategy.commands();
@@ -176,7 +305,7 @@ class CommandStrategy {
 
 class ServingStrategy {
 
-    constructor(characteristics, opponents, servers) {
+    constructor(strategies, characteristics, opponents, servers) {
         this._characteristics = characteristics;
         this._opponents = opponents;
         this._opponentPlayerCount = [...this.opponents.first.players].length + [...this.opponents.second.players].length;
@@ -207,9 +336,10 @@ class ServingStrategy {
         return this.servers.players.count >= this.opponentPlayerCount / 2;
     }
 
-    // get match() {
-    //     return this._commandStrategy.match;
-    // }
+    get allServers() {
+        return this.servers.allServers;
+
+    }
 
     get lastServerId() {
         return this.servers.value.lastServerId;
@@ -234,42 +364,47 @@ class ServingStrategy {
 
     removeLastServer() {
         this.servers.players.removeLast();
+        this._updateAllServers()
     }
 
-    addServer(player) {
-        if (!player) {
+    newServer(playerId) {
+        if (!playerId) {
             if (!this.areServersKnown) {
                 throw new Error('player must be specified');
             }
-            this.lastServerId = this.nextServer.id;
+            this.lastServerId = this.nextServerId;
         }
         else if (!this.areServersKnown) {
-            if (this.hasPlayerServed(player)) {
+            if (this.hasPlayerServed(playerId)) {
                 throw new Error('player serving out of order')
             }
-            this.servers.players.add().id = player.id;
-            this.lastServerId = player.id;
-            this._addOtherServers(player);
+            this.servers.players.add().id = playerId;
+            this.lastServerId = playerId;
+            this._updateAllServers();
         }
     }
 
-    _addOtherServers(player) {
+    _updateAllServers() {
         if (this.areServersKnown) {
-            let opponent = this.opponentOfPlayer(player);
-            while (this.servers.players.count < this.opponentPlayerCount) {
+            const playerId = this.servers.players.last.id;
+            const allServers = [...this.servers.players].map((value) => value.id);
+            let opponent = this.opponentOfPlayer(playerId);
+            while (allServers.length < this.opponentPlayerCount) {
                 opponent = this.nextOpponent(opponent);
-                //[...opponent.players].filter((player)=>return !this.hasPlayerServed(player)).forEach()
                 for (let player of opponent.players) {
-                    if (!this.hasPlayerServed(player))
-                        this.servers.players.add().id = player.id
+                    if (allServers.indexOf(player.id) < 0)
+                        allServers.push(player.id);
                 }
             }
+            this.servers.allServers = allServers;
+        } else {
+            this.servers.allServers = undefined;
         }
     }
 
-    opponentOfPlayer(player) {
+    opponentOfPlayer(playerId) {
         for (let opponent of this.opponents) {
-            if (opponent.players.containsValue({id: player.id})) {
+            if (opponent.players.containsValue({id: playerId})) {
                 return opponent;
             }
         }
@@ -289,17 +424,17 @@ class ServingStrategy {
         }
     }
 
-    get nextServer() {
+    get nextServerId() {
         if (!this.areServersKnown) {
             throw new Error('next server not known');
         }
         let next;
-        let players = [...this.servers.players];
+        let players = this.allServers;
         let last = this.lastServerId;
         if (!last)
             return players[0];
         for (let i = 0; i < players.length; i++) {
-            if (players[i].id === last) {
+            if (players[i] === last) {
                 next = i + 1;
                 break;
             }
@@ -314,8 +449,10 @@ class ServingStrategy {
 
 class MatchCommandStrategy {
 
-    constructor(commandStrategy) {
-        this._commandStrategy = commandStrategy;
+    constructor(strategies, match, characteristics) {
+        this._strategies = strategies;
+        this._match = match;
+        this._characteristics = characteristics;
         this._onWinner = (entity) => this.onWinner(entity);
         matchObservable.subscribeWinner(this._onWinner);
     }
@@ -329,19 +466,23 @@ class MatchCommandStrategy {
             this.updateScore();
     }
 
+    get strategies() {
+        return this._strategies;
+    }
+
     get match() {
-        return this._commandStrategy.match;
+        return this._match;
     }
 
     get characteristics() {
-        return this._commandStrategy.characteristics;
+        return this._characteristics;
     }
 
-    get commandStrategy() {
-        return this._commandStrategy;
-    }
+    // get commandStrategy() {
+    //     return this._commandStrategy;
+    // }
 
-    canStartOver() {
+    get canStartOver() {
         return (this.match.warmingUp || this.match.started);
     }
 
@@ -364,31 +505,32 @@ class MatchCommandStrategy {
 
     startPlay(server) {
         new MatchSet(this.match.sets, {});
-        return this.commandStrategy.matchSetCommandStrategy.startGame(server);
+        return this.strategies.matchSetCommandStrategy.startGame(server);
     }
 
     undoStartPlay(server) {
+        this.strategies.matchSetCommandStrategy.undoStartGame(server);
         this.match.sets.removeLast();
     }
 
     startSet() {
         new MatchSet(this.match.sets);
-        return this.commandStrategy.matchSetCommandStrategy.startGame();
+        return this.strategies.matchSetCommandStrategy.startGame();
     }
 
     undoStartSet() {
-        this.match.sets.removeList();
+        this.match.sets.removeLast();
     }
 
     startMatchTiebreak() {
         new MatchSet(this.match.sets);
         // TODO: Match set strategy should be tiebreak specific
-        let result = this.commandStrategy.matchSetCommandStrategy.startGame();
+        let result = this.strategies.matchSetCommandStrategy.startGame();
         result.matchTiebreak = true;
     }
 
     undoStartMatchTiebreak() {
-        this.match.sets.removeList();
+        this.match.sets.removeLast();
     }
 
     updateScore() {
@@ -426,32 +568,35 @@ class MatchCommandStrategy {
         }
         if (winningScore) {
             this.match.winnerId = scores.indexOf(winningScore) + 1;
+        } else {
+            this.match.winnerId = undefined;
         }
     }
 
     * commands() {
         if (!this.match.warmingUp && !this.match.started) {
-            yield new StartWarmup(this);
+            yield new StartWarmup(this.strategies);
         }
         if (!this.match.started) {
-            for (let server of this.commandStrategy.servingStrategy.serverChoices()) {
-                yield new StartPlay(this, server.id);
+            for (let server of this.strategies.servingStrategy.serverChoices()) {
+                yield new StartPlay(this.strategies, server.id);
             }
         }
         if (this.canStartSet) {
-            yield new StartSet(this);
+            yield new StartSet(this.strategies);
         } else if (this.canStartMatchTiebreak) {
-            yield new StartMatchTiebreak(this);
+            yield new StartMatchTiebreak(this.strategies);
         }
-     }
+    }
 }
 
 class SetCommandStrategy {
 
-    constructor(matchSet, servingStrategy, matchCommandStrategy) {
+    constructor(strategies, matchSet) {
+        this._strategies = strategies;
         this._matchSet = matchSet;
-        this._servingStrategy = servingStrategy;
-        this._matchCommandStrategy = matchCommandStrategy;
+        // this._servingStrategy = servingStrategy;
+        // this._matchCommandStrategy = matchCommandStrategy;
         this._onWinner = (entity) => this.onWinner(entity);
         if (this._matchSet)
             matchObservable.subscribeWinner(this._onWinner);
@@ -461,28 +606,31 @@ class SetCommandStrategy {
         matchObservable.unSubscribeWinner(this._onWinner);
     }
 
-    get matchSet() {
-        return this._matchSet;
+    get strategies() {
+        return this._strategies;
     }
 
+    // get matchSet() {
+    //     return this._matchSet;
+    // }
+
     onWinner(entity) {
+        // console.log(`onWinner ${entity.constructor.name}`);
         if (this.matchSet.games.contains(entity))
             this.updateScore(entity);
     }
 
-    get matchCommandStrategy() {
-        return this._matchCommandStrategy;
-    }
-
     startGame(server) {
         const result = new SetGame(this.matchSet.games);
-        this.servingStrategy.addServer(server);
+        if (server)
+            this.strategies.servingStrategy.newServer(server);
         return result;
     }
 
     undoStartGame(server) {
-        this.matchSet.removeLast();
-        this.servingStrategy.removeLastServer();
+        this.matchSet.games.removeLast();
+        if (server)
+            this.strategies.servingStrategy.removeLastServer();
     }
 
     startSetTiebreak() {
@@ -492,7 +640,11 @@ class SetCommandStrategy {
     }
 
     undoStartSetTiebreak() {
-        this.matchSet.removeLast();
+        this.matchSet.games.removeLast();
+    }
+
+    undoWinGame() {
+        this.matchSet.games.last.winnerId = undefined;
     }
 
     get winThreshold() {
@@ -530,15 +682,14 @@ class SetCommandStrategy {
         if (winningScore) {
             this.matchSet.winnerId = scores.indexOf(winningScore) + 1;
         }
+        else {
+            this.matchSet.winnerId = undefined;
+        }
 
     }
 
     get matchSet() {
         return this._matchSet;
-    }
-
-    get servingStrategy() {
-        return this._servingStrategy;
     }
 
     get canStartGame() {
@@ -553,41 +704,42 @@ class SetCommandStrategy {
 
     * commands() {
         if (this.canStartGame) {
-            if (!this.servingStrategy.areServersKnown) {
+            if (!this.strategies.servingStrategy.areServersKnown) {
                 for (let player of this.servingStrategy.serverChoices()) {
-                    yield new StartGame(this, player.id);
+                    yield new StartGame(this.strategies, player.id);
                 }
             } else {
-                yield new StartGame(this);
+                yield new StartGame(this.strategies);
             }
         } else if (this.canStartSetTiebreak) {
-            yield new StartSetTiebreak(this);
+            yield new StartSetTiebreak(this.strategies);
         }
     }
 }
 
 class GameCommandStrategy {
 
-    constructor(game, opponents, matchSetStrategy) {
+    constructor(strategies, game, opponents) {
+        this._strategies = strategies;
         this._game = game;
         this._opponents = opponents;
-        this._matchSetStrategy = matchSetStrategy;
+        // this._matchSetStrategy = matchSetStrategy;
     }
 
     dispose() {
 
     }
 
-    get matchSetStrategy() {
-        return this._matchSetStrategy;
+    get strategies() {
+        return this._strategies;
+    }
+
+    get matchSet() {
+        return this.strategies.matchSetCommandStrategy.matchSet;
     }
 
     winGame(opponentId) {
-        this._game.winnerId = opponentId;
-    }
-
-    undoWinGame(opponentId) {
-        this._game.winnerId = undefined;
+        this.game.winnerId = opponentId;
     }
 
     get opponents() {
@@ -599,14 +751,14 @@ class GameCommandStrategy {
     }
 
     * commands() {
-        if (this.game && !this.game.winner) {
+        if (this.game && !this.game.winnerId) {
             for (let opponent of this.opponents) {
                 if (this.game.setTiebreak)
-                    yield new WinSetTiebreak(this, opponent.id);
+                    yield new WinSetTiebreak(this.strategies, opponent.id);
                 else if (this.game.matchTiebreak)
-                    yield new WinMatchTiebreak(this, opponent.id);
+                    yield new WinMatchTiebreak(this.strategies, opponent.id);
                 else
-                    yield new WinGame(this, opponent.id);
+                    yield new WinGame(this.strategies, opponent.id);
             }
         }
     }

@@ -1,36 +1,48 @@
-
 class MatchCommandInvoker {
 
     constructor() {
-        this._history = [];
+        this._historyQueue = [];
+        this._undoStack = [];
     }
 
     invoke(command) {
-        if (command.undo)
-          this.history.push(command);
         command.execute();
-
+        this.historyQueue.push(command);
+        if (command.undo)
+            this.undoStack.push(command);
     }
 
     get canUndo() {
-        return this.history.length > 0;
+        return this.undoStack.length > 0;
     }
 
-    undo() {
+    undo(undoCommand) {
         if (this.canUndo) {
-            let command = this.history.splice(-1);
+            let command = this.undoStack.splice(-1);
             command[0].undo();
+            this.historyQueue.push(undoCommand);
         }
     }
 
-    clearHistory() {
-        this._history = [];
+    clearCommands() {
+        this._historyQueue = [];
+        this._undoStack = [];
     }
 
-    get history() {
-        return this._history;
+    get historyQueue() {
+        return this._historyQueue;
     }
 
+    get undoStack() {
+        return this._undoStack;
+    }
+
+    get undoableCommand() {
+        if (this.canUndo) {
+            let command = this.undoStack[this.undoStack.length - 1];
+            return command;
+        }
+    }
 }
 
 export {MatchCommandInvoker}

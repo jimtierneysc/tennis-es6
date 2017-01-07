@@ -18,10 +18,12 @@ class MatchObservable {
     }
 
     changeScores(entity) {
+        // console.log(`changeScores ${entity.constructor.name}`);
         this.emitter.emit(MatchObservable.events.changeScores, entity);
     }
 
     changeWinner(entity) {
+        // console.log(`changeWinner ${entity.constructor.name}`);
         this.emitter.emit(MatchObservable.events.changeWinner, entity);
     }
 

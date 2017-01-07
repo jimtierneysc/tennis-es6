@@ -56,7 +56,7 @@ describe('servingStrategy', () => {
                 playableMatch = matchFactory.makeMatch();
                 servingStrategy = playableMatch.commandStrategy.servingStrategy;
                 players = [...playableMatch.match.players.list];
-                servingStrategy.addServer(players[0]);
+                servingStrategy.newServer(players[0].id);
             });
 
             it('should know server', () => {
@@ -68,7 +68,7 @@ describe('servingStrategy', () => {
             });
 
             it('should have all servers', () => {
-                expect([...playableMatch.match.servers.players].length).to.be.equal(2);
+                expect(servingStrategy.allServers.length).to.be.equal(2);
             });
 
             it('should have lastServer', () => {
@@ -77,7 +77,7 @@ describe('servingStrategy', () => {
 
             describe('second server', () => {
                 beforeEach(() => {
-                    servingStrategy.addServer();
+                    servingStrategy.newServer();
                 });
 
                 it('should have lastServer', () => {
@@ -86,7 +86,7 @@ describe('servingStrategy', () => {
 
                 describe('third server', () => {
                     beforeEach(() => {
-                        servingStrategy.addServer();
+                        servingStrategy.newServer();
                     });
 
                     it('should have lastServer', () => {
@@ -104,7 +104,7 @@ describe('servingStrategy', () => {
                 playableMatch = matchFactory.makeMatch(MatchCharacteristics.TwoSetDoubles);
                 servingStrategy = playableMatch.commandStrategy.servingStrategy;
                 players = [...playableMatch.match.players.list];
-                servingStrategy.addServer(players[0]);
+                servingStrategy.newServer(players[0].id);
             });
 
             it('should not know servers', () => {
@@ -121,7 +121,7 @@ describe('servingStrategy', () => {
 
             describe('second server', () => {
                 beforeEach(() => {
-                    servingStrategy.addServer(players[2]);
+                    servingStrategy.newServer(players[2].id);
                 });
                 it('should know servers', () => {
                     expect(servingStrategy.areServersKnown).to.be.true;
@@ -132,7 +132,7 @@ describe('servingStrategy', () => {
                 });
 
                 it('should have all servers', () => {
-                    expect([...playableMatch.match.servers.players].length).to.be.equal(4);
+                    expect(servingStrategy.allServers.length).to.be.equal(4);
                 });
 
                 it('should have lastServer', () => {
@@ -141,7 +141,7 @@ describe('servingStrategy', () => {
 
                 describe('third server', () => {
                     beforeEach(() => {
-                        servingStrategy.addServer();
+                        servingStrategy.newServer();
                     });
 
                     it('should have lastServer', () => {
@@ -150,7 +150,7 @@ describe('servingStrategy', () => {
 
                     describe('fourth server', () => {
                         beforeEach(() => {
-                            servingStrategy.addServer();
+                            servingStrategy.newServer();
                         });
 
                         it('should have lastServer', () => {
@@ -159,7 +159,7 @@ describe('servingStrategy', () => {
 
                         describe('fifth server', () => {
                             beforeEach(() => {
-                                servingStrategy.addServer();
+                                servingStrategy.newServer();
                             });
 
                             it('should have lastServer', () => {

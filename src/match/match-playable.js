@@ -8,6 +8,10 @@ class PlayableMatch  {
         this._commandInvoker = commandInvoker;
     }
 
+    dispose() {
+        this.commandStrategy.dispose();
+    }
+
     get match() {
         return this._match;
     }
@@ -22,15 +26,22 @@ class PlayableMatch  {
 
     *otherCommands() {
         if (this.commandInvoker.canUndo) {
-            yield new UndoOperation(()=>this.commandInvoker.undo());
+            yield new UndoOperation(this.commandInvoker);
         }
 
         if (this.commandStrategy.matchCommandStrategy.canStartOver) {
             yield new StartOver(()=> {
                 this.commandStrategy.matchCommandStrategy.startOver();
-                this.commandInvoker.clearHistory();
+                this.commandInvoker.clearCommands();
             });
         }
+    }
+
+    * allCommands() {
+        yield* this.setGameCommands();
+        yield* this.matchSetCommands();
+        yield* this.matchCommands();
+        yield* this.otherCommands();
     }
 
     matchCommands() {

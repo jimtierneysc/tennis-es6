@@ -31,7 +31,7 @@ describe('Match', () => {
         return fn[name]();
     }
 
-    describe('constructor()', () => {
+    describe('new-match', () => {
 
         let match;
 
@@ -39,16 +39,16 @@ describe('Match', () => {
             match = new Match();
         });
 
-        // it('should have singles', () => {
-        //     expect(match.singles).not.to.be.undefined;
-        // });
-        //
-        // it('should have doubles', () => {
-        //     expect(match.doubles).not.to.be.undefined;
-        // });
-
         it('should have scores', () => {
             expect(match.scores).to.be.eql([0, 0]);
+        });
+
+        it('should have opponents', () => {
+            expect(match.opponents).to.exist;
+        });
+
+        it('should have servers', () => {
+            expect(match.servers).to.exist;
         });
 
         it('should not have winnerId', () => {
@@ -56,11 +56,15 @@ describe('Match', () => {
         });
 
         it('should have sets', () => {
-            expect(match.sets).not.to.be.undefined;
+            expect(match.sets).to.exist;
         });
 
         it('should have players', () => {
-            expect(match.players).not.to.be.undefined;
+            expect(match.players).to.exist;
+        });
+
+        it('should have players.lastId', () => {
+            expect(match.players.idCounter).to.exist;
         });
 
     });
@@ -82,64 +86,6 @@ describe('Match', () => {
                 expect(obj.count).to.equal(1);
             });
         }
-    });
-
-    describe('constructor(value)', () => {
-        let match;
-
-        beforeEach(() => {
-            match = new Match({
-                scores: [1, 2],
-                winner: 1,
-                sets: [{
-                    winner: 1,
-                    scores: [3, 4],
-                    games: [
-                        {
-                            winner: 2
-                        }
-                    ]
-                }]
-            });
-        });
-
-        it('should have scores', () => {
-            expect(match.scores).to.be.eql([1, 2]);
-        });
-
-        it('should have winner', () => {
-            expect(match.winnerId).to.be.equal(1);
-        });
-
-        it('should have sets', () => {
-            expect(match.sets).to.exist;
-        });
-
-        it('should have one set', () => {
-            expect(match.sets.count).to.equal(1);
-        });
-
-        it('should have set score', () => {
-            expect(match.sets.last.scores).to.eql([3, 4]);
-        });
-
-        it('should have set winner', () => {
-            expect(match.sets.last.winnerId).to.equal(1);
-        });
-
-        it('should be started', () => {
-            expect(match.started).to.exist;
-        });
-
-        it('should have one game', () => {
-            expect(match.sets.last.games.count).to.equal(1);
-        });
-
-        it('should have game winner', () => {
-            expect(match.sets.last.games.last.winnerId).to.equal(2);
-        });
-
-
     });
 
     describe('iterate', () => {
