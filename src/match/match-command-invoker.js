@@ -1,13 +1,15 @@
+import {MatchHistoryList, MatchHistoryCommand} from './match-history'
+
 class MatchCommandInvoker {
 
-    constructor() {
-        this._historyQueue = [];
+    constructor(historyList) {
+        this._historyList = historyList;
         this._undoStack = [];
     }
 
     invoke(command) {
         command.execute();
-        this.historyQueue.push(command);
+        this.historyList.addCommand(command);
         if (command.undo)
             this.undoStack.push(command);
     }
@@ -20,17 +22,17 @@ class MatchCommandInvoker {
         if (this.canUndo) {
             let command = this.undoStack.splice(-1);
             command[0].undo();
-            this.historyQueue.push(undoCommand);
+            this.historyList.addCommand(undoCommand);
         }
     }
 
     clearCommands() {
-        this._historyQueue = [];
+        // this._historyQueue = [];
         this._undoStack = [];
     }
 
-    get historyQueue() {
-        return this._historyQueue;
+    get historyList() {
+        return this._historyList;
     }
 
     get undoStack() {

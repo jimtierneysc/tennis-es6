@@ -28,9 +28,10 @@ class PlayMatch {
 
     }
 
-
     showHistory() {
-        console.log(JSON.stringify(this.match.commandInvoker.historyQueue));
+        for (const item of this.match.historyList) {
+            console.log(item.title);
+        }
     }
 
     updateQuestions() {
@@ -65,7 +66,7 @@ class PlayMatch {
     _play() {
         // this.match.dispose();
         // this.match = matchFactory.makeMatchFromValue(JSON.parse(JSON.stringify(this.match.match.value)));
-        console.log(JSON.stringify(this.match.match.value));
+        // console.log(JSON.stringify(this.match.match.value));
         this.updateQuestions();
         inquirer.prompt(this.questions).then((answers) => {
             // console.log(answers);

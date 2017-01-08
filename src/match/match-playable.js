@@ -2,10 +2,11 @@
 import {UndoOperation, StartOver} from './match-command'
 class PlayableMatch  {
 
-    constructor(match, commandStrategy, commandInvoker) {
+    constructor(match, commandStrategy, commandInvoker, historyList) {
         this._match = match;
         this._commandStrategy = commandStrategy;
         this._commandInvoker = commandInvoker;
+        this._historyList = historyList;
     }
 
     dispose() {
@@ -22,6 +23,10 @@ class PlayableMatch  {
 
     get commandInvoker() {
         return this._commandInvoker;
+    }
+
+    get historyList() {
+        return this._historyList;
     }
 
     *otherCommands() {
