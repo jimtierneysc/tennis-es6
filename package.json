@@ -31,6 +31,9 @@
     ]
   },
   "dependencies": {
+    "aurelia-dependency-injection": "^1.2.1",
+    "aurelia-metadata": "^1.0.3",
+    "aurelia-polyfills": "^1.1.1",
     "inquirer": "^2.0.0"
   }
 }
