@@ -19,6 +19,7 @@ class MatchHistoryList extends ScoreComponentList {
     }
 }
 
+// TODO: create with DI
 class MatchHistoryCommand extends ScoreComponent{
     constructor(owner, value) {
         super(owner, value || {});

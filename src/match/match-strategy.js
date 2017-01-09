@@ -10,6 +10,20 @@ import {MatchCharacteristics} from './match-characteristics'
 
 import {Match, MatchSet, SetGame} from './match-entity'
 
+import {
+//     Lazy,
+//     All,
+//     Optional,
+//     Parent,
+    Factory
+//     NewInstance,
+//     lazy,
+//     all,
+//     optional,
+//     parent,
+//     factory,
+//     newInstance
+} from 'aurelia-dependency-injection';
 
 // TODO: Class names are confusing.  Rename.
 class MatchStrategy {
@@ -20,6 +34,9 @@ class MatchStrategy {
         this.characteristics.scoring = this.characteristics.scoring || MatchCharacteristics.Scoring.TWOSETS;
     }
 
+    get container() {
+        return this._container;
+    }
     get characteristics() {
         return this._characteristics;
     }
@@ -62,20 +79,28 @@ class MatchStrategy {
         }
     }
 
-    createCommandStrategy(match) {
-        return new CommandStrategy(match, this);
+    createCommandStrategy(container, match) {
+        return new CommandStrategy(container, match, this);
     }
 
 }
 
 class StrategyFactory {
-    constructor(match, matchStrategy) {
+    constructor(container, match, matchStrategy) {
+        this._container = container;
         this._match = match;
         this._matchStrategy = matchStrategy;
         this._matchCommandStrategy = undefined;
-        this._matchCommandStrategy = undefined;
-        this._matchCommandStrategy = undefined;
+        this._setGameCommandStrategy = undefined;
+        this._matchSetCommandStrategy = undefined;
         this._servingStrategy = undefined;
+        container.registerInstance(MatchCommandStrategy, this.matchCommandStrategy);
+        container.registerHandler(SetCommandStrategy, ()=> {
+            return  this.matchSetCommandStrategy
+        });
+        container.registerHandler(GameCommandStrategy, ()=> {
+            return this.setGameCommandStrategy
+        });
     }
 
     dispose() {
@@ -86,6 +111,9 @@ class StrategyFactory {
         });
     }
 
+    get container() {
+        return this._container;
+    }
     get characteristics() {
         return this.matchStrategy.characteristics;
     }
@@ -174,10 +202,11 @@ class StrategyFactory {
 
 class CommandStrategy {
 
-    constructor(match, matchStrategy) {
+    constructor(container, match, matchStrategy) {
+        this._container = container;
         this._match = match;
         this._matchStrategy = matchStrategy;
-        this._strategyFactory = new StrategyFactory(match, matchStrategy);
+        this._strategyFactory = new StrategyFactory(container, match, matchStrategy);
         // this._matchCommandStrategy = undefined;
         // this._matchCommandStrategy = undefined;
         // this._matchCommandStrategy = undefined;
@@ -191,6 +220,10 @@ class CommandStrategy {
         //         value.dispose();
         //     }
         // });
+    }
+
+    get container() {
+        return this._container;
     }
 
     get strategyFactory() {
@@ -216,45 +249,6 @@ class CommandStrategy {
     get matchStrategy() {
         return this._matchStrategy;
     }
-
-    // get activeSet() {
-    //     return this.strategyFactory.matchCommandStrategy.activeSet;
-    // }
-    //
-    // get activeGame() {
-    //     return this.strategyFactory.matchSetCommandStrategy.activeGame;
-    // }
-
-    // get servingStrategy() {
-    //     if (!this._servingStrategy) {
-    //         this._servingStrategy = new ServingStrategy(this.characteristics, this.match.opponents,
-    //             this.match.servers);
-    //     }
-    //     return this._servingStrategy;
-    // }
-    //
-    // get matchCommandStrategy() {
-    //     if (!this._matchCommandStrategy) {
-    //         this._matchCommandStrategy = new MatchCommandStrategy(this);
-    //     }
-    //     return this._matchCommandStrategy;
-    // }
-    //
-    // get setGameCommandStrategy() {
-    //     if (!this._setGameCommandStrategy || this._setGameCommandStrategy.game != this.activeGame) {
-    //         if (this._setGameCommandStrategy) this._setGameCommandStrategy.dispose();
-    //         this._setGameCommandStrategy = new GameCommandStrategy(this.activeGame, this.match.opponents, this.matchSetCommandStrategy);
-    //     }
-    //     return this._setGameCommandStrategy;
-    // }
-    //
-    // get matchSetCommandStrategy() {
-    //     if (!this._matchSetCommandStrategy || this._matchSetCommandStrategy.matchSet != this.activeSet) {
-    //         if (this._matchSetCommandStrategy) this._matchSetCommandStrategy.dispose();
-    //         this._matchSetCommandStrategy = new SetCommandStrategy(this.activeSet, this.servingStrategy, this.matchCommandStrategy);
-    //     }
-    //     return this._matchSetCommandStrategy;
-    // }
 
     get servingStrategy() {
         return this.strategyFactory.servingStrategy;
@@ -575,17 +569,20 @@ class MatchCommandStrategy {
 
     * commands() {
         if (!this.match.warmingUp && !this.match.started) {
-            yield new StartWarmup(this.strategies);
+            yield this.strategies.container.get(StartWarmup);
         }
         if (!this.match.started) {
             for (let server of this.strategies.servingStrategy.serverChoices()) {
-                yield new StartPlay(this.strategies, server.id);
+                let factory = new Factory(StartPlay);
+                let fn = factory.get(this.strategies.container);
+                let command = fn(server.id);
+                yield command;
             }
         }
         if (this.canStartSet) {
-            yield new StartSet(this.strategies);
+            yield this.strategies.container.get(StartSet);
         } else if (this.canStartMatchTiebreak) {
-            yield new StartMatchTiebreak(this.strategies);
+            yield this.strategies.container.get(StartMatchTiebreak);
         }
     }
 }
@@ -595,8 +592,6 @@ class SetCommandStrategy {
     constructor(strategies, matchSet) {
         this._strategies = strategies;
         this._matchSet = matchSet;
-        // this._servingStrategy = servingStrategy;
-        // this._matchCommandStrategy = matchCommandStrategy;
         this._onWinner = (entity) => this.onWinner(entity);
         if (this._matchSet)
             matchObservable.subscribeWinner(this._onWinner);
@@ -609,10 +604,6 @@ class SetCommandStrategy {
     get strategies() {
         return this._strategies;
     }
-
-    // get matchSet() {
-    //     return this._matchSet;
-    // }
 
     onWinner(entity) {
         // console.log(`onWinner ${entity.constructor.name}`);
@@ -702,17 +693,25 @@ class SetCommandStrategy {
         this.matchSet.games.last.finished && this.matchSet.scores[0] === 6 && this.matchSet.scores[1] === 6);
     }
 
+    createStartGame(id) {
+        let factory = new Factory(StartGame);
+        let fn = factory.get(this.strategies.container);
+        let command = fn(id);
+        return command;
+
+    }
+
     * commands() {
         if (this.canStartGame) {
             if (!this.strategies.servingStrategy.areServersKnown) {
-                for (let player of this.servingStrategy.serverChoices()) {
-                    yield new StartGame(this.strategies, player.id);
+                for (let player of this.strategies.servingStrategy.serverChoices()) {
+                    yield createStartGame(player.id);
                 }
             } else {
-                yield new StartGame(this.strategies);
+                yield this.createStartGame();
             }
         } else if (this.canStartSetTiebreak) {
-            yield new StartSetTiebreak(this.strategies);
+            yield this.strategies.container.get(StartSetTiebreak);
         }
     }
 }
@@ -723,7 +722,6 @@ class GameCommandStrategy {
         this._strategies = strategies;
         this._game = game;
         this._opponents = opponents;
-        // this._matchSetStrategy = matchSetStrategy;
     }
 
     dispose() {
@@ -750,18 +748,40 @@ class GameCommandStrategy {
         return this._game;
     }
 
+    createWinGame(id) {
+        let factory = new Factory(WinGame);
+        let fn = factory.get(this.strategies.container);
+        let command = fn(id);
+        return command;
+    }
+
+    createWinSetTiebreak(id) {
+        let factory = new Factory(WinSetTiebreak);
+        let fn = factory.get(this.strategies.container);
+        let command = fn(id);
+        return command;
+    }
+
+    createWinMatchTiebreak(id) {
+        let factory = new Factory(WinMatchTiebreak);
+        let fn = factory.get(this.strategies.container);
+        let command = fn(id);
+        return command;
+    }
+
     * commands() {
         if (this.game && !this.game.winnerId) {
             for (let opponent of this.opponents) {
                 if (this.game.setTiebreak)
-                    yield new WinSetTiebreak(this.strategies, opponent.id);
+                    yield this.createWinSetTiebreak(opponent.id);
                 else if (this.game.matchTiebreak)
-                    yield new WinMatchTiebreak(this.strategies, opponent.id);
-                else
-                    yield new WinGame(this.strategies, opponent.id);
+                    yield this.createWinMatchTiebreak(opponent.id);
+                else {
+                    yield this.createWinGame(opponent.id);
+                }
             }
         }
     }
 }
 
-export {MatchStrategy}
+export {MatchStrategy, MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy}

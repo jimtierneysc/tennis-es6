@@ -259,12 +259,12 @@ describe('winGame', () => {
 
     it('should award win to opponent 1', () => {
         playableMatch.commandInvoker.invoke(commands[0]);  // win game
-        expect(playableMatch.match.sets.last.games.last.winnerId).to.be.equal(commands[0].winnerId);
+        expect(playableMatch.match.sets.last.games.last.winnerId).to.be.equal(1);
     });
 
     it('should award win to opponent 2', () => {
         playableMatch.commandInvoker.invoke(commands[1]);  // win game
-        expect(playableMatch.match.sets.last.games.last.winnerId).to.be.equal(commands[1].winnerId);
+        expect(playableMatch.match.sets.last.games.last.winnerId).to.be.equal(2);
     });
 
 });

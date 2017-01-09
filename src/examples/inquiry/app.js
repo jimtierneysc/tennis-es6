@@ -8,13 +8,14 @@ class PlayMatch {
 
     constructor(match) {
         this.match = match;
-        matchObservable.subscribeScores((entity)=> {
+        this.onScores = (entity) => {
             console.log(`${entity.constructor.name}, index: ${entity.index}, score: ${JSON.stringify(entity.scores)}`)
-
-        });
-        matchObservable.subscribeWinner((entity)=> {
-            console.log(`${entity.constructor.name}, index: ${entity.index}, winner: ${JSON.stringify(entity.winnerId)}`)
-       });
+        };
+        this.onWinner = (entity) => {
+            console.log(`${entity.constructor.name}, index: ${entity.index}, score: ${JSON.stringify(entity.scores)}`)
+        };
+        matchObservable.subscribeScores(this.onScores);
+        matchObservable.subscribeWinner(this.onWinner);
         this.map = new Map();
         this.showMainMenu = true;
         this.done = false;
@@ -24,8 +25,11 @@ class PlayMatch {
             message: 'What do you want to do?',
             choices: ['a', 'b']
         };
+    }
 
-
+    dispose() {
+        matchObservable.unSubscribeScores(this.onScores);
+        matchObservable.unSubscribeWinner(this.onWinner);
     }
 
     showHistory() {
@@ -60,37 +64,32 @@ class PlayMatch {
     startPlay() {
         this.done = false;
         this.showMainMenu = true;
-        this._play();
+        const promise = new Promise((resolve, reject) => {
+            this._play(() => {
+                resolve('done');
+            });
+        });
+        return promise;
     }
 
-    _play() {
-        // this.match.dispose();
-        // this.match = matchFactory.makeMatchFromValue(JSON.parse(JSON.stringify(this.match.match.value)));
-        // console.log(JSON.stringify(this.match.match.value));
+    _play(done) {
         this.updateQuestions();
         inquirer.prompt(this.questions).then((answers) => {
             // console.log(answers);
             let fn = this.map.get(answers.command);
             fn();
             if (!this.done) {
-                this._play();
+                this._play(done);
+            } else {
+                done();
             }
-        })
-
+        });
     }
 }
 
-// function play() {
-//     inquirer.prompt(questions).then(function (answers) {
-//         output.push(answers.tvShow);
-//         if (answers.askAgain) {
-//             ask();
-//         } else {
-//             console.log('Your favorite TV Shows:', output.join(', '));
-//         }
-//     });
-// }
-
 let match = matchFactory.makeMatch();
 let playMatch = new PlayMatch(match);
-playMatch.startPlay();
+playMatch.startPlay().then((value) => {
+    console.log(value);
+    playMatch.dispose();
+});

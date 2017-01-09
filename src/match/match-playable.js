@@ -1,9 +1,10 @@
 
 import {UndoOperation, StartOver} from './match-command'
+import {Match} from './match-entity';
 class PlayableMatch  {
 
-    constructor(match, commandStrategy, commandInvoker, historyList) {
-        this._match = match;
+    constructor(container, match, commandStrategy, commandInvoker, historyList) {
+        this._container = container;
         this._commandStrategy = commandStrategy;
         this._commandInvoker = commandInvoker;
         this._historyList = historyList;
@@ -13,8 +14,13 @@ class PlayableMatch  {
         this.commandStrategy.dispose();
     }
 
+    get container() {
+        return this._container;
+
+    }
+
     get match() {
-        return this._match;
+        return this.container.get(Match);
     }
 
     get commandStrategy() {
@@ -31,7 +37,9 @@ class PlayableMatch  {
 
     *otherCommands() {
         if (this.commandInvoker.canUndo) {
-            yield new UndoOperation(this.commandInvoker);
+            let undo = this.container.get(UndoOperation);
+            // yield new UndoOperation(this.commandInvoker);
+            yield undo;
         }
 
         if (this.commandStrategy.matchCommandStrategy.canStartOver) {
