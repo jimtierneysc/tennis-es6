@@ -63,10 +63,6 @@ describe('Match', () => {
             expect(match.players).to.exist;
         });
 
-        it('should have players.lastId', () => {
-            expect(match.players.idCounter).to.exist;
-        });
-
     });
 
     describe('removeLast', () => {

@@ -71,8 +71,8 @@ class compare {
     static servers(value1, value2) {
         if (value1.players.count != value2.players.count)
             compare.error('servers');
-        if (value1.lastServerId != value2.lastServerId) {
-            compare.error('lastServerId');
+        if (value1._lastServerId != value2._lastServerId) {
+            compare.error('_lastServerId');
         }
         compare.iterate(value1.players, value2.players, (value1, value2) => compare.playerRef(value1, value2))
     }

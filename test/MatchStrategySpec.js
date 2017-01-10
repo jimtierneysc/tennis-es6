@@ -67,7 +67,7 @@ describe('servingStrategy', () => {
             });
 
             it('should have all servers', () => {
-                expect(servingStrategy.allServers.length).to.be.equal(2);
+                expect(playableMatch.match.servers.allServers.length).to.be.equal(2);
             });
 
             it('should have lastServer', () => {
@@ -115,7 +115,7 @@ describe('servingStrategy', () => {
         //     });
         //
         //     it('should have lastServer', () => {
-        //         expect(servingStrategy.lastServerId).to.be.equal(players[0].id)
+        //         expect(servingStrategy._lastServerId).to.be.equal(players[0].id)
         //     });
         //
         //     describe('second server', () => {
@@ -135,7 +135,7 @@ describe('servingStrategy', () => {
         //         });
         //
         //         it('should have lastServer', () => {
-        //             expect(servingStrategy.lastServerId).to.be.equal(players[2].id)
+        //             expect(servingStrategy._lastServerId).to.be.equal(players[2].id)
         //         });
         //
         //         describe('third server', () => {
@@ -144,7 +144,7 @@ describe('servingStrategy', () => {
         //             });
         //
         //             it('should have lastServer', () => {
-        //                 expect(servingStrategy.lastServerId).to.be.equal(players[1].id)
+        //                 expect(servingStrategy._lastServerId).to.be.equal(players[1].id)
         //             });
         //
         //             describe('fourth server', () => {
@@ -153,7 +153,7 @@ describe('servingStrategy', () => {
         //                 });
         //
         //                 it('should have lastServer', () => {
-        //                     expect(servingStrategy.lastServerId).to.be.equal(players[3].id)
+        //                     expect(servingStrategy._lastServerId).to.be.equal(players[3].id)
         //                 });
         //
         //                 describe('fifth server', () => {
@@ -162,7 +162,7 @@ describe('servingStrategy', () => {
         //                     });
         //
         //                     it('should have lastServer', () => {
-        //                         expect(servingStrategy.lastServerId).to.be.equal(players[0].id)
+        //                         expect(servingStrategy._lastServerId).to.be.equal(players[0].id)
         //                     });
         //                 })
         //

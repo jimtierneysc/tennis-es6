@@ -5,9 +5,7 @@
   "scripts": {
     "compile": "babel --presets es2015,stage-0 --plugins transform-runtime --source-maps -d lib/ src/",
     "compile:watch": "babel --watch --presets es2015,stage-0 --plugins transform-runtime --source-maps -d lib/ src/",
-    "run": "babel-node app.js",
-    "xxbuild": "babel . -d .dist --ignore=\"node_modules\" --source-maps",
-    "xxtest": "npm run compile && mocha --compilers js:babel-register",
+    "run": "babel-node src/examples/inquiry/app.js",
     "test": "mocha --compilers js:babel-register"
   },
   "devDependencies": {

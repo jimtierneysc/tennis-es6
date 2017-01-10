@@ -48,5 +48,5 @@ class MatchObservable {
     }
 }
 
-export let matchObservable = new MatchObservable();
+export {MatchObservable};
 

@@ -1,5 +1,8 @@
-import {MatchHistoryList, MatchHistoryCommand} from './match-history'
+import {MatchHistoryList, MatchHistoryCommandItem} from './match-history'
 import 'aurelia-polyfills';
+
+const _undoStack = new WeakMap();
+const _historyList = new WeakMap();
 
 class MatchCommandInvoker {
 
@@ -7,8 +10,8 @@ class MatchCommandInvoker {
         return [MatchHistoryList];
     }
     constructor(historyList) {
-        this._historyList = historyList;
-        this._undoStack = [];
+        _historyList.set(this, historyList);
+        _undoStack.set(this, []);
     }
 
     invoke(command) {
@@ -20,6 +23,7 @@ class MatchCommandInvoker {
 
     get canUndo() {
         return this.undoStack.length > 0;
+
     }
 
     undo(undoCommand) {
@@ -31,16 +35,15 @@ class MatchCommandInvoker {
     }
 
     clearCommands() {
-        // this._historyQueue = [];
-        this._undoStack = [];
+        _undoStack.set(this, []);
     }
 
     get historyList() {
-        return this._historyList;
+        return _historyList.get(this);
     }
 
     get undoStack() {
-        return this._undoStack;
+        return _undoStack.get(this);
     }
 
     get undoableCommand() {

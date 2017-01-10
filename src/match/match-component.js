@@ -1,14 +1,19 @@
 import * as _ from 'lodash'
-// import {matchObservable} from './match-observable'
 
-// TODO: Parent vs. Owner
-class ScoreComponent {
-    constructor(owner, value) {
-        this._childList = undefined;
-        this._owner = owner;
-        this._value = value || {};
-        if (owner) {
-            this._owner.addChild(this);
+// Containers for hidden and read-only properties
+const _childList = new WeakMap();
+const _owner = new WeakMap();
+const _parent = new WeakMap();
+const _value = new WeakMap();
+
+class MatchComponent {
+    constructor(owner, parent, value) {
+        _owner.set(this, owner);
+        _value.set(this, value || {});
+        if (parent && parent.addChild) {
+            parent.addChild(this);
+        } else {
+            _parent.set(this, parent);
         }
     }
 
@@ -28,28 +33,15 @@ class ScoreComponent {
     }
 
     get owner() {
-        return this._owner;
+        return _owner.get(this);
+    }
+
+    get parent() {
+        return _parent.get(this);
     }
 
     get value() {
-        return this._value;
-    }
-
-    childRemoved(component) { // virtual
-
-    }
-
-    childAdded(component) {
-
-    }
-
-    removeChild(component) {
-        this.childRemoved(component);
-    }
-
-    // TODO: Set owner, remove from previous owner
-    addChild(component) {
-        this.childAdded(component);
+        return _value.get(this);
     }
 
     isEqualValue(value) {
@@ -57,17 +49,16 @@ class ScoreComponent {
     }
 
     get index() {
-        if (this.owner && this.owner.indexOf) {
-            return this.owner.indexOf(this)
+        if (this.parent && this.parent.indexOf) {
+            return this.parent.indexOf(this)
         }
     }
-
 }
 
-class ScoreComponentList extends ScoreComponent {
-    constructor(owner, value) {
-        super(owner, value || []);
-        this._childList = [];
+class MatchComponentList extends MatchComponent {
+    constructor(owner, parent, value) {
+        super(owner, parent, value || []);
+        _childList.set(this, []);
         this.constructChildren();
     }
 
@@ -75,29 +66,30 @@ class ScoreComponentList extends ScoreComponent {
         this.value.forEach((i) => this.factory(i));
     }
 
+    get childList() {
+        return _childList.get(this);
+    }
+
     removeChild(component) {
-        const i = this._childList.indexOf(component);
+        _parent.set(component, undefined);
+        let childList = _childList.get(this);
+        const i = childList.indexOf(component);
         if (i >= 0) {
-            this._childList.splice(i, 1);
-            this.childRemoved(component);
+            childList.splice(i, 1);
+            // this._childRemoved(component);
+            const j = this.value.indexOf(component.value);
+            if (j >= 0) {
+                this.value.splice(j, 1);
+            }
         }
     }
 
-    // TODO: Set owner, remove from previous owner
     addChild(component) {
-        this._childList.push(component);
-        this.childAdded(component);
-    }
-
-    childRemoved(component) {
-        const i = this.value.indexOf(component.value);
-        if (i >= 0) {
-            this.value.splice(i, 1);
+        if (component.parent) {
+            component.parent.removeChild(component);
         }
-    }
-
-    // Override
-    childAdded(component) {
+        _parent.set(component, this);
+        _childList.get(this).push(component);
         const i = this.value.indexOf(component.value);
         if (i < 0) {
             this.value.push(component.value);
@@ -105,13 +97,14 @@ class ScoreComponentList extends ScoreComponent {
     }
 
     get count() {
-        return this._childList.length;
+        return _childList.get(this).length;
     }
 
     get last() {
-        const len = this._childList.length;
+        let childList = _childList.get(this);
+        const len = childList.length;
         if (len > 0)
-            return this._childList[len - 1];
+            return childList[len - 1];
     }
 
     removeLast() {
@@ -122,7 +115,7 @@ class ScoreComponentList extends ScoreComponent {
     }
 
     * [Symbol.iterator]() {
-        for (const arg of this._childList) {
+        for (const arg of this.childList) {
             yield arg;
         }
     }
@@ -133,8 +126,7 @@ class ScoreComponentList extends ScoreComponent {
     }
 
     factory(value) {
-        // TODO: Raise exception
-        return null;
+        throw new Error('Not implemented');
     }
 
     containsValue(value) {
@@ -171,4 +163,4 @@ class ScoreComponentList extends ScoreComponent {
 
 }
 
-export {ScoreComponent, ScoreComponentList}
+export {MatchComponent, MatchComponentList}

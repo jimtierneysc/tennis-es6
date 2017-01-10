@@ -1,28 +1,28 @@
 // import {MatchStrategy} from './match-commandStrategy'
 
-import {ScoreComponent, ScoreComponentList} from './match-component';
+import {MatchComponent, MatchComponentList} from './match-component';
 
-class MatchHistoryList extends ScoreComponentList {
+class MatchHistoryList extends MatchComponentList {
     constructor(value) {
-        super(null, value || []);
-    }
-
-    factory(value) {
-        return new MatchHistoryCommand(this, value);
+        super(null, null, value || []);
     }
 
     addCommand(command) {
-        const result = new MatchHistoryCommand(this);
+        const result = new MatchHistoryCommandItem(this);
         result.saveCommand(command);
         return result;
     }
 }
 
-// TODO: create with DI
-class MatchHistoryCommand extends ScoreComponent{
+class MatchHistoryItem extends MatchComponent {
     constructor(owner, value) {
-        super(owner, value || {});
+        super(owner, owner, value || {});
     }
+
+}
+
+// TODO: create with DI
+class MatchHistoryCommandItem extends MatchHistoryItem {
 
     get title() {
         return this.value.title;
@@ -36,6 +36,6 @@ class MatchHistoryCommand extends ScoreComponent{
 
 }
 
-export {MatchHistoryList, MatchHistoryCommand}
+export {MatchHistoryList, MatchHistoryCommandItem}
 
 

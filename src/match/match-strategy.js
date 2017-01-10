@@ -4,62 +4,57 @@ import {
     StartMatchTiebreak, WinMatchTiebreak,
     StartGame, WinGame, StartOver
 } from './match-command';
-import {matchObservable} from './match-observable';
 
 import {Match, MatchSet, SetGame} from './match-entity'
+import {Container} from 'aurelia-dependency-injection';
+
 
 import {
-//     Lazy,
-//     All,
-//     Optional,
-//     Parent,
     Factory
-//     NewInstance,
-//     lazy,
-//     all,
-//     optional,
-//     parent,
-//     factory,
-//     newInstance
 } from 'aurelia-dependency-injection';
+import 'aurelia-polyfills';
 
+class OnWinnerStrategy {
+    static inject() {
+        return [Match, SetCommandStrategy, MatchCommandStrategy];
+    }
 
-class ServingStrategy {
-
-    constructor(strategies, options, opponents, servers) {
-        this._options = options;
-        this._opponents = opponents;
-        this._opponentPlayerCount = [...this.opponents.first.players].length + [...this.opponents.second.players].length;
-        this._servers = servers;
+    constructor(match, setStrategy, matchStrategy) {
+        this.setStrategy = setStrategy; // function
+        this.matchStrategy = matchStrategy;
+        this.onWinner = (entity) => this._onWinner(entity);
+        this.matchObservable = match.observable;
+        this.matchObservable.subscribeWinner(this.onWinner);
     }
 
     dispose() {
-
+        this.matchObservable.unSubscribeWinner(this.onWinner);
     }
 
-    get options() {
-        return this._options;
+    _onWinner(entity) {
+        if (entity instanceof SetGame)
+            this.setStrategy().onWinGame(entity);
+        else if (entity instanceof MatchSet)
+            this.matchStrategy().onWinSet(entity);
+    }
+}
+
+class ServingStrategy {
+}
+
+class CommonServingStrategy extends ServingStrategy {
+    static inject() {
+        return [Match];
     }
 
-    get opponents() {
-        return this._opponents;
-    }
-
-    get servers() {
-        return this._servers;
-    }
-
-    get opponentPlayerCount() {
-        return this._opponentPlayerCount;
+    constructor(match) {
+        super();
+        this.opponents = match.opponents;
+        this.servers = match.servers;
     }
 
     get areServersKnown() {
-        return this.servers.players.count >= this.opponentPlayerCount / 2;
-    }
-
-    get allServers() {
-        return this.servers.allServers;
-
+        return this.servers.players.count >= this._opponentPlayerCount / 2;
     }
 
     get lastServerId() {
@@ -67,18 +62,16 @@ class ServingStrategy {
 
     }
 
-    set lastServerId(id) {
+    set _lastServerId(id) {
         this.servers.value.lastServerId = id;
     }
 
-    hasPlayerServed(player) {
-        return this.servers.players.containsValue({id: player.id});
-    }
-
-    hasOpponentServed(opponent) {
-        for (let player of opponent.players) {
-            if (this.hasPlayerServed(player)) {
-                return true;
+    * serverChoices() {
+        if (!this.areServersKnown) {
+            for (let opponent of this.opponents) {
+                if (!this._hasOpponentServed(opponent)) {
+                    yield* opponent.players;
+                }
             }
         }
     }
@@ -93,15 +86,31 @@ class ServingStrategy {
             if (!this.areServersKnown) {
                 throw new Error('player must be specified');
             }
-            this.lastServerId = this.nextServerId;
+            this._lastServerId = this._nextServerId;
         }
         else if (!this.areServersKnown) {
-            if (this.hasPlayerServed(playerId)) {
+            if (this._hasPlayerServed(playerId)) {
                 throw new Error('player serving out of order')
             }
             this.servers.players.add().id = playerId;
-            this.lastServerId = playerId;
+            this._lastServerId = playerId;
             this._updateAllServers();
+        }
+    }
+
+    get _opponentPlayerCount() {
+        return [...this.opponents.first.players].length + [...this.opponents.second.players].length;
+    }
+
+    _hasPlayerServed(player) {
+        return this.servers.players.containsValue({id: player.id});
+    }
+
+    _hasOpponentServed(opponent) {
+        for (let player of opponent.players) {
+            if (this._hasPlayerServed(player)) {
+                return true;
+            }
         }
     }
 
@@ -109,9 +118,9 @@ class ServingStrategy {
         if (this.areServersKnown) {
             const playerId = this.servers.players.last.id;
             const allServers = [...this.servers.players].map((value) => value.id);
-            let opponent = this.opponentOfPlayer(playerId);
-            while (allServers.length < this.opponentPlayerCount) {
-                opponent = this.nextOpponent(opponent);
+            let opponent = this._opponentOfPlayer(playerId);
+            while (allServers.length < this._opponentPlayerCount) {
+                opponent = this._nextOpponent(opponent);
                 for (let player of opponent.players) {
                     if (allServers.indexOf(player.id) < 0)
                         allServers.push(player.id);
@@ -123,7 +132,7 @@ class ServingStrategy {
         }
     }
 
-    opponentOfPlayer(playerId) {
+    _opponentOfPlayer(playerId) {
         for (let opponent of this.opponents) {
             if (opponent.players.containsValue({id: playerId})) {
                 return opponent;
@@ -131,26 +140,16 @@ class ServingStrategy {
         }
     }
 
-    nextOpponent(opponent) {
+    _nextOpponent(opponent) {
         return (opponent === this.opponents.first) ? this.opponents.second : this.opponents.first;
     }
 
-    * serverChoices() {
-        if (!this.areServersKnown) {
-            for (let opponent of this.opponents) {
-                if (!this.hasOpponentServed(opponent)) {
-                    yield* opponent.players;
-                }
-            }
-        }
-    }
-
-    get nextServerId() {
+    get _nextServerId() {
         if (!this.areServersKnown) {
             throw new Error('next server not known');
         }
         let next;
-        let players = this.allServers;
+        let players = this.servers.allServers;
         let last = this.lastServerId;
         if (!last)
             return players[0];
@@ -162,37 +161,30 @@ class ServingStrategy {
         }
         if (next)
             return players[next % players.length];
-
-
     }
 }
 
 
 class MatchCommandStrategy {
 
-    constructor(strategies, match, options) {
-        this._strategies = strategies;
-        this._match = match;
-        this._options = options;
-        this._onWinner = (entity) => this.onWinner(entity);
-        matchObservable.subscribeWinner(this._onWinner);
+}
+
+class CommonMatchCommandStrategy extends MatchCommandStrategy {
+    static inject() {
+        return [Container, Match, SetCommandStrategy, ServingStrategy];
     }
 
-    dispose() {
-        matchObservable.unSubscribeWinner(this._onWinner);
+    constructor(container, match, matchSetCommandStrategy, servingStrategy) {
+        super();
+        this.matchSetCommandStrategy = matchSetCommandStrategy; // function
+        this.match = match;
+        this.container = container;
+        this.servingStrategy = servingStrategy;
     }
 
-    onWinner(entity) {
+    onWinSet(entity) {
         if (this.match.sets.contains(entity))
-            this.updateScore();
-    }
-
-    get strategies() {
-        return this._strategies;
-    }
-
-    get match() {
-        return this._match;
+            this._updateScore();
     }
 
     get canStartOver() {
@@ -205,7 +197,8 @@ class MatchCommandStrategy {
         this.match.scores = [0, 0];
         this.match.servers.clear();
         this.match.sets.clear();
-        // TODO: Clear command history
+
+        // TODO: clear history and undo stack
     }
 
     startWarmup() {
@@ -218,17 +211,17 @@ class MatchCommandStrategy {
 
     startPlay(server) {
         new MatchSet(this.match.sets, {});
-        return this.strategies.matchSetCommandStrategy.startGame(server);
+        return this.matchSetCommandStrategy().startGame(server);
     }
 
     undoStartPlay(server) {
-        this.strategies.matchSetCommandStrategy.undoStartGame(server);
+        this.matchSetCommandStrategy().undoStartGame(server);
         this.match.sets.removeLast();
     }
 
     startSet() {
         new MatchSet(this.match.sets);
-        return this.strategies.matchSetCommandStrategy.startGame();
+        return this.matchSetCommandStrategy().startGame();
     }
 
     undoStartSet() {
@@ -238,7 +231,7 @@ class MatchCommandStrategy {
     startMatchTiebreak() {
         new MatchSet(this.match.sets);
         // TODO: Match set strategy should be tiebreak specific
-        let result = this.strategies.matchSetCommandStrategy.startGame();
+        let result = this.matchSetCommandStrategy().startGame();
         result.matchTiebreak = true;
     }
 
@@ -246,7 +239,7 @@ class MatchCommandStrategy {
         this.match.sets.removeLast();
     }
 
-    updateScore() {
+    _updateScore() {
         let scores = [0, 0];
 
         for (let set of this.match.sets) {
@@ -257,26 +250,26 @@ class MatchCommandStrategy {
 
         this.match.scores = scores;
 
-        this.updateWinner(scores);
+        this._updateWinner(scores);
     }
 
-    get winThreshold() {
+    get _winThreshold() {
         return 2;
     }
 
-    get canStartSet() {
-        return this.match.inProgress && !this.canStartMatchTiebreak && this.match.sets.last.finished;
+    get _canStartSet() {
+        return this.match.inProgress && !this._canStartMatchTiebreak && this.match.sets.last.finished;
     }
 
-    get canStartMatchTiebreak() {
+    get _canStartMatchTiebreak() {
         return this.match.inProgress && this.match.scores && !this.match.sets.last.inProgress &&
             this.match.scores[0] === 1 && this.match.scores[1] === 1;
     }
 
-    updateWinner(scores) {
+    _updateWinner(scores) {
         let winningScore;
         let max = Math.max(...scores);
-        if (max === this.winThreshold) {
+        if (max === this._winThreshold) {
             winningScore = max; // tiebreak
         }
         if (winningScore) {
@@ -286,61 +279,68 @@ class MatchCommandStrategy {
         }
     }
 
+    _createFromFactory(klass, ...rest) {
+        let factory = new Factory(klass);
+        let fn = factory.get(this.container);
+        let result = fn(...rest);
+        return result;
+    }
+
     * commands() {
         if (!this.match.warmingUp && !this.match.started) {
-            yield this.strategies.container.get(StartWarmup);
+            yield this.container.get(StartWarmup);
         }
         if (!this.match.started) {
-            for (let server of this.strategies.servingStrategy.serverChoices()) {
-                let factory = new Factory(StartPlay);
-                let fn = factory.get(this.strategies.container);
-                let command = fn(server.id);
-                yield command;
+            for (let server of this.servingStrategy().serverChoices()) {
+                yield this._createFromFactory(StartPlay, server.id);
+                //     // yield command;
+                //     let factory = new Factory(StartPlay);
+                //     let fn = factory.get(this.container);
+                //     let command = fn(server.id);
+                //     yield command;
             }
         }
-        if (this.canStartSet) {
-            yield this.strategies.container.get(StartSet);
-        } else if (this.canStartMatchTiebreak) {
-            yield this.strategies.container.get(StartMatchTiebreak);
+        if (this._canStartSet) {
+            yield this.container.get(StartSet);
+        } else if (this._canStartMatchTiebreak) {
+            yield this.container.get(StartMatchTiebreak);
         }
     }
 }
 
 class SetCommandStrategy {
 
-    constructor(strategies, matchSet) {
-        this._strategies = strategies;
-        this._matchSet = matchSet;
-        this._onWinner = (entity) => this.onWinner(entity);
-        if (this._matchSet)
-            matchObservable.subscribeWinner(this._onWinner);
+}
+
+class CommonSetCommandStrategy extends SetCommandStrategy {
+    static inject() {
+        return [Container, Match, ServingStrategy];
     }
 
-    dispose() {
-        matchObservable.unSubscribeWinner(this._onWinner);
+    constructor(container, match, servingStrategy) {
+        super();
+        this.container = container;
+        this.matchSet = match.sets.last;
+        this.servingStrategy = servingStrategy;
     }
 
-    get strategies() {
-        return this._strategies;
-    }
-
-    onWinner(entity) {
+    onWinGame(entity) {
         // console.log(`onWinner ${entity.constructor.name}`);
-        if (this.matchSet.games.contains(entity))
-            this.updateScore(entity);
+        if (this.matchSet && this.matchSet.games.contains(entity))
+            this._updateScore(entity);
     }
 
     startGame(server) {
         const result = new SetGame(this.matchSet.games);
         if (server)
-            this.strategies.servingStrategy.newServer(server);
+            this.servingStrategy().newServer(server);
         return result;
     }
 
     undoStartGame(server) {
         this.matchSet.games.removeLast();
         if (server)
-            this.strategies.servingStrategy.removeLastServer();
+            this.servingStrategy().removeLastServer();
     }
 
     startSetTiebreak() {
@@ -357,11 +357,11 @@ class SetCommandStrategy {
         this.matchSet.games.last.winnerId = undefined;
     }
 
-    get winThreshold() {
+    get _winThreshold() {
         return 6;
     }
 
-    updateScore(game) {
+    _updateScore(game) {
         let scores = [0, 0];
 
         for (let game of this.matchSet.games) {
@@ -372,19 +372,19 @@ class SetCommandStrategy {
 
         this.matchSet.scores = scores;
 
-        this.updateWinner(game, scores);
+        this._updateWinner(game, scores);
     }
 
-    updateWinner(game, scores) {
+    _updateWinner(game, scores) {
         let winningScore;
         let max = Math.max(...scores);
         let min = Math.min(...scores);
         if (game.matchTiebreak && max == 1) {
             winningScore = max
         } else {
-            if (max === this.winThreshold + 1 && min === this.winThreshold) {
+            if (max === this._winThreshold + 1 && min === this._winThreshold) {
                 winningScore = max; // tiebreak
-            } else if (max >= this.winThreshold && max - min >= 2) {
+            } else if (max >= this._winThreshold && max - min >= 2) {
                 winningScore = max;
             }
         }
@@ -398,105 +398,80 @@ class SetCommandStrategy {
 
     }
 
-    get matchSet() {
-        return this._matchSet;
-    }
-
-    get canStartGame() {
-        return (this.matchSet && !this.matchSet.finished && !this.canStartSetTiebreak &&
+    get _canStartGame() {
+        return (this.matchSet && !this.matchSet.finished && !this._canStartSetTiebreak &&
         this.matchSet.games.last.finished);
     }
 
-    get canStartSetTiebreak() {
+    get _canStartSetTiebreak() {
         return (this.matchSet &&
         this.matchSet.games.last.finished && this.matchSet.scores[0] === 6 && this.matchSet.scores[1] === 6);
     }
 
-    createStartGame(id) {
+    createFromFactory(id) {
         let factory = new Factory(StartGame);
-        let fn = factory.get(this.strategies.container);
+        let fn = factory.get(this.container);
         let command = fn(id);
         return command;
 
     }
 
     * commands() {
-        if (this.canStartGame) {
-            if (!this.strategies.servingStrategy.areServersKnown) {
-                for (let player of this.strategies.servingStrategy.serverChoices()) {
-                    yield createStartGame(player.id);
+        if (this._canStartGame) {
+            if (!this.servingStrategy().areServersKnown) {
+                for (let player of this.servingStrategy().serverChoices()) {
+                    yield createFromFactory(player.id);
                 }
             } else {
-                yield this.createStartGame();
+                yield this.createFromFactory();
             }
-        } else if (this.canStartSetTiebreak) {
-            yield this.strategies.container.get(StartSetTiebreak);
+        } else if (this._canStartSetTiebreak) {
+            yield this.container.get(StartSetTiebreak);
         }
     }
 }
 
 class GameCommandStrategy {
 
-    constructor(strategies, game, opponents) {
-        this._strategies = strategies;
-        this._game = game;
-        this._opponents = opponents;
+}
+
+class CommonGameCommandStrategy extends GameCommandStrategy {
+
+    static inject() {
+        return [Container, Match,];
     }
 
-    dispose() {
-
-    }
-
-    get strategies() {
-        return this._strategies;
-    }
-
-    get matchSet() {
-        return this.strategies.matchSetCommandStrategy.matchSet;
+    constructor(container, match, matchSetStrategy) {
+        super();
+        this.container = container;
+        this.opponents = match.opponents;
+        this.game = (() => {
+            let lastSet = match.sets.last;
+            if (lastSet)
+                return lastSet.games.last;
+        })();
     }
 
     winGame(opponentId) {
         this.game.winnerId = opponentId;
     }
 
-    get opponents() {
-        return this._opponents;
-    }
-
-    get game() {
-        return this._game;
-    }
-
-    createWinGame(id) {
-        let factory = new Factory(WinGame);
-        let fn = factory.get(this.strategies.container);
-        let command = fn(id);
-        return command;
-    }
-
-    createWinSetTiebreak(id) {
-        let factory = new Factory(WinSetTiebreak);
-        let fn = factory.get(this.strategies.container);
-        let command = fn(id);
-        return command;
-    }
-
-    createWinMatchTiebreak(id) {
-        let factory = new Factory(WinMatchTiebreak);
-        let fn = factory.get(this.strategies.container);
-        let command = fn(id);
-        return command;
+    _createFromFactory(klass, ...rest) {
+        let factory = new Factory(klass);
+        let fn = factory.get(this.container);
+        let result = fn(...rest);
+        return result;
     }
 
     * commands() {
         if (this.game && !this.game.winnerId) {
             for (let opponent of this.opponents) {
                 if (this.game.setTiebreak)
-                    yield this.createWinSetTiebreak(opponent.id);
+                    yield this._createFromFactory(WinSetTiebreak, opponent.id);
                 else if (this.game.matchTiebreak)
-                    yield this.createWinMatchTiebreak(opponent.id);
+                    yield this._createFromFactory(WinMatchTiebreak, opponent.id);
                 else {
-                    yield this.createWinGame(opponent.id);
+                    yield this._createFromFactory(WinGame, opponent.id);
                 }
             }
         }
@@ -504,6 +479,9 @@ class GameCommandStrategy {
 }
 
 export {
-    MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy,
-    ServingStrategy
+    MatchCommandStrategy, CommonMatchCommandStrategy,
+    SetCommandStrategy, CommonSetCommandStrategy,
+    GameCommandStrategy, CommonGameCommandStrategy,
+    ServingStrategy, CommonServingStrategy,
+    OnWinnerStrategy
 }

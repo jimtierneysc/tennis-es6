@@ -1,200 +1,20 @@
-/**
- * Classes to record tennis match score
- */
-// import * as _ from 'lodash'
-import {matchObservable} from './match-observable';
-import {ScoreComponent, ScoreComponentList} from './match-component';
+import {MatchObservable} from './match-observable';
+import {MatchComponent, MatchComponentList} from './match-component';
 
-// // TODO: Parent vs. Owner
-// class ScoreComponent {
-//     constructor(owner, value) {
-//         this._childList = undefined;
-//         this._owner = owner;
-//         this._value = value || {};
-//         if (owner) {
-//             this._owner.addChild(this);
-//         }
-//     }
-//
-//     initValue(member, defValue) {
-//         if (!(member in this.value)) {
-//             this.value[member] = defValue;
-//         }
-//         return this.value[member];
-//     }
-//
-//     initArray(member) {
-//         return this.initValue(member, []);
-//     }
-//
-//     initObj(member) {
-//         return this.initValue(member, {});
-//     }
-//
-//     get owner() {
-//         return this._owner;
-//     }
-//
-//     get value() {
-//         return this._value;
-//     }
-//
-//     childRemoved(component) { // virtual
-//
-//     }
-//
-//     childAdded(component) {
-//
-//     }
-//
-//     removeChild(component) {
-//         this.childRemoved(component);
-//     }
-//
-//     // TODO: Set owner, remove from previous owner
-//     addChild(component) {
-//         this.childAdded(component);
-//     }
-//
-//     isEqualValue(value) {
-//         return _.isEqual(value, this.value);
-//     }
-//
-//     get index() {
-//         if (this.owner && this.owner.indexOf) {
-//             return this.owner.indexOf(this)
-//         }
-//     }
-//
-// }
-//
-// class ScoreComponentList extends ScoreComponent {
-//     constructor(owner, value) {
-//         super(owner, value || []);
-//         this._childList = [];
-//         this.constructChildren();
-//     }
-//
-//     constructChildren() {
-//         this.value.forEach((i) => this.factory(i));
-//     }
-//
-//     removeChild(component) {
-//         const i = this._childList.indexOf(component);
-//         if (i >= 0) {
-//             this._childList.splice(i, 1);
-//             this.childRemoved(component);
-//         }
-//     }
-//
-//     // TODO: Set owner, remove from previous owner
-//     addChild(component) {
-//         this._childList.push(component);
-//         this.childAdded(component);
-//     }
-//
-//     childRemoved(component) {
-//         const i = this.value.indexOf(component.value);
-//         if (i >= 0) {
-//             this.value.splice(i, 1);
-//         }
-//     }
-//
-//     // Override
-//     childAdded(component) {
-//         const i = this.value.indexOf(component.value);
-//         if (i < 0) {
-//             this.value.push(component.value);
-//         }
-//     }
-//
-//     get count() {
-//         return this._childList.length;
-//     }
-//
-//     get last() {
-//         const len = this._childList.length;
-//         if (len > 0)
-//             return this._childList[len - 1];
-//     }
-//
-//     removeLast() {
-//         const item = this.last;
-//         if (item) {
-//             this.removeChild(item);
-//         }
-//     }
-//
-//     * [Symbol.iterator]() {
-//         for (const arg of this._childList) {
-//             yield arg;
-//         }
-//     }
-//
-//     add() {
-//         const result = this.factory();
-//         return result;
-//     }
-//
-//     factory(value) {
-//         // TODO: Raise exception
-//         return null;
-//     }
-//
-//     containsValue(value) {
-//         for (let i of this) {
-//             if (i.isEqualValue(value)) {
-//                 return true;
-//             }
-//         }
-//     }
-//
-//     contains(entity) {
-//         for (let i of this) {
-//             if (i === entity) {
-//                 return true;
-//             }
-//         }
-//     }
-//
-//     indexOf(entity) {
-//         let index = 0;
-//         for (let i of this) {
-//             if (i === entity) {
-//                 return index;
-//             }
-//             index++;
-//         }
-//     }
-//
-//     clear() {
-//         while(this.count) {
-//             this.removeLast();
-//         }
-//     }
-//
-// }
+class SetGame extends MatchComponent {
 
-class SetGame extends ScoreComponent {
-
-    constructor(owner, value) {
-        super(owner, value);
+    constructor(parent, value) {
+        super(parent.owner, parent, value);
     }
-
-    // get matchSet() {
-    //     return this.owner.owner;
-    // }
 
     get winnerId() {
         return this.value.winner;
-
     }
 
     set winnerId(opponentId) {
-        // console.log(`set winner: ${opponentId}`);
         if (this.value.winner != opponentId) {
             this.value.winner = opponentId;
-            matchObservable.changeWinner(this);
+            this.owner.observable.changeWinner(this);
         }
     }
 
@@ -223,28 +43,27 @@ class SetGame extends ScoreComponent {
     }
 }
 
-class SetGames extends ScoreComponentList {
+class SetGames extends MatchComponentList {
+    constructor(parent, value) {
+        super(parent.owner, parent, value);
+    }
+
     factory(value) {
         return new SetGame(this, value);
     }
 }
 
-class MatchSet extends ScoreComponent {
-    constructor(owner, value) {
-        super(owner, value);
-        this._games = new SetGames(this, this.initArray('games'));
-        // TODO: Initialize winner and scores
+const _games = new WeakMap();
+class MatchSet extends MatchComponent {
+    constructor(parent, value) {
+        super(parent.owner, parent, value);
+        _games.set(this, new SetGames(this, this.initArray('games')));
         this.initValue('scores', [0, 0]);
         this.initValue('winner', undefined);
     }
 
-    // get match() {
-    //     // TODO: Parent vs. owner
-    //     return this.owner.owner;
-    // }
-
     get games() {
-        return this._games;
+        return _games.get(this);
     }
 
     get winnerId() {
@@ -255,7 +74,7 @@ class MatchSet extends ScoreComponent {
     set winnerId(opponentId) {
         if (this.value.winner != opponentId) {
             this.value.winner = opponentId;
-            matchObservable.changeWinner(this);
+            this.owner.observable.changeWinner(this);
         }
     }
 
@@ -265,7 +84,7 @@ class MatchSet extends ScoreComponent {
 
     set scores(value) {
         this.value.scores = value;
-        matchObservable.changeScores(this);
+        this.owner.observable.changeScores(this);
     }
 
     get finished() {
@@ -277,16 +96,20 @@ class MatchSet extends ScoreComponent {
     }
 }
 
-class MatchSets extends ScoreComponentList {
+class MatchSets extends MatchComponentList {
+    constructor(owner, value) {
+        super(owner, undefined, value);
+    }
+
     factory(value) {
         return new MatchSet(this, value);
     }
 }
 
-class Player extends ScoreComponent {
+class Player extends MatchComponent {
 
-    constructor(owner, value) {
-        super(owner, value || {id: owner.owner._nextId()});
+    constructor(parent, value) {
+        super(parent.owner, parent, value || {id: parent.parent._nextId()});
     }
 
     get name() {
@@ -302,39 +125,40 @@ class Player extends ScoreComponent {
     }
 }
 
-class PlayerList extends ScoreComponentList {
+class PlayerList extends MatchComponentList {
+    constructor(parent, value) {
+        super(parent.owner, parent, value);
+    }
+
     factory(value) {
         return new Player(this, value);
     }
 
 }
 
-class Players extends ScoreComponent {
+const _list = new WeakMap();
+class Players extends MatchComponent {
     constructor(owner, value) {
-        super(owner, value || {lastId: 0});
-        this._list = new PlayerList(this, this.initArray('list'));
+        super(owner, undefined, value || {lastId: 0});
+        _list.set(this, new PlayerList(this, this.initArray('list')));
     }
 
     get list() {
-        return this._list;
-    }
-
-    get idCounter() {
-        return this.value.idCounter || 1;
-    }
-
-    set idCounter(value) {
-        this.value.idCounter = value;
+        return _list.get(this);
     }
 
     _nextId() {
-        let result = this.idCounter;
-        this.idCounter = result + 1;
+        let result = this.value.idCounter || 1;
+        this.value.idCounter = result + 1;
         return result;
     }
 }
 
-class PlayerRef extends ScoreComponent {
+class PlayerRef extends MatchComponent {
+
+    constructor(parent, value) {
+        super(parent.owner, parent, value);
+    }
 
     get id() {
         return this.value.id;
@@ -345,21 +169,27 @@ class PlayerRef extends ScoreComponent {
     }
 }
 
-class PlayerRefList extends ScoreComponentList {
+class PlayerRefList extends MatchComponentList {
+    constructor(parent, value) {
+        super(parent.owner, parent, value);
+    }
+
     factory(value) {
         return new PlayerRef(this, value);
     }
 }
 
-class PlayerRefs extends ScoreComponent {
+const _players = new WeakMap();
 
-    constructor(owner, value) {
-        super(owner, value);
-        this._players = new PlayerRefList(this, this.initArray('players'));
+class PlayerRefs extends MatchComponent {
+
+    constructor(owner, parent, value) {
+        super(owner, parent, value);
+        _players.set(this, new PlayerRefList(this, this.initArray('players')));
     }
 
     get players() {
-        return this._players;
+        return _players.get(this);
     }
 
     clear() {
@@ -369,12 +199,15 @@ class PlayerRefs extends ScoreComponent {
 }
 
 class Servers extends PlayerRefs {
+    constructor(owner, value) {
+        super(owner, undefined, value);
+    }
 }
 
 class Opponent extends PlayerRefs {
 
-    constructor(owner, value, id) {
-        super(owner, value);
+    constructor(parent, value, id) {
+        super(parent.owner, parent, value);
         this.value.id = id;
     }
 
@@ -385,48 +218,48 @@ class Opponent extends PlayerRefs {
 
 }
 
-class Opponents extends ScoreComponent {
+const _first = new WeakMap();
+const _second = new WeakMap();
+
+class Opponents extends MatchComponent {
     constructor(owner, value) {
-        super(owner, value || {});
-        this._first = new Opponent(this, this.initObj('first'), 1);
-        this._second = new Opponent(this, this.initObj('second'), 2);
+        super(owner, undefined, value || {});
+        _first.set(this, new Opponent(this, this.initObj('first'), 1));
+        _second.set(this, new Opponent(this, this.initObj('second'), 2));
     }
 
     get first() {
-        return this._first;
+        return _first.get(this);
     }
 
     get second() {
-        return this._second;
+        return _second.get(this);
     }
 
     * [Symbol.iterator]() {
-        yield this._first;
-        yield this._second;
+        yield this.first;
+        yield this.second;
     }
 
 }
 
-class Match extends ScoreComponent {
+const _sets = new WeakMap();
+const _servers = new WeakMap();
+const _opponents = new WeakMap();
+
+class Match extends MatchComponent {
 
     constructor(value) {
-        super(undefined, value);
-        this._sets = new MatchSets(this, this.initArray('sets'));
-        this._players = new Players(this, this.initObj('players'));
-        this._servers = new Servers(this, this.initObj('servers'));
-        this._opponents = new Opponents(this, this.initObj('opponents'));
+        super(undefined, undefined, value);
+        _sets.set(this, new MatchSets(this, this.initArray('sets')));
+        _players.set(this, new Players(this, this.initObj('players')));
+        _servers.set(this, new Servers(this, this.initObj('servers')));
+        _opponents.set(this, new Opponents(this, this.initObj('opponents')));
         this.initValue('scores', [0, 0]);
         this.initValue('warmingUp', undefined);
         this.initValue('winner', undefined);
+        this.observable = new MatchObservable();
     }
-
-    // get singles() {
-    //     return this.players.count === 2;
-    // }
-    //
-    // get doubles() {
-    //     return this.players.count === 4;
-    // }
 
     get started() {
         return this.sets.count > 0;
@@ -444,28 +277,24 @@ class Match extends ScoreComponent {
         return this.value.warmingUp && !this.started;
     }
 
-    get strategy() {
-        return this._commandStrategy;
-    }
-
     set warmingUp(value) {
         this.value.warmingUp = value;
     }
 
     get sets() {
-        return this._sets;
+        return _sets.get(this);
     }
 
     get players() {
-        return this._players;
+        return _players.get(this);
     }
 
     get servers() {
-        return this._servers;
+        return _servers.get(this);
     }
 
     get opponents() {
-        return this._opponents;
+        return _opponents.get(this);
     }
 
     get winnerId() {
@@ -475,7 +304,7 @@ class Match extends ScoreComponent {
     set winnerId(winner) {
         if (this.value.winner != winner) {
             this.value.winner = winner;
-            matchObservable.changeWinner(this);
+            this.observable.changeWinner(this);
         }
     }
 
@@ -485,7 +314,7 @@ class Match extends ScoreComponent {
 
     set scores(value) {
         this.value.scores = value;
-        matchObservable.changeScores(this);
+        this.observable.changeScores(this);
     }
 }
 

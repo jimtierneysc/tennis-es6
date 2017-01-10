@@ -11,38 +11,38 @@ import {
 } from '../src/match/match-command';
 import {Utils as util} from './MatchCommandUtils';
 
-describe('makeMatch', () => {
-    it('should have makeMatch', () => {
-        expect(playableMatchFactory.makeMatch).not.to.be.undefined;
-    });
-});
-
-describe('playableMatch', () => {
-
-    let playableMatch;
-
-    beforeEach(() => {
-        playableMatch = playableMatchFactory.makeMatch();
-    });
-
-    it('should have commands', () => {
-        expect(playableMatch.matchCommands).not.to.be.undefined;
-    });
-});
-
-describe('matchCommands', () => {
-
-    let commands = [];
-
-    beforeEach(() => {
-        let playableMatch = playableMatchFactory.makeMatch();
-        commands = [...playableMatch.matchCommands()]
-    });
-
-    it('should have commands', () => {
-        expect(commands.length).to.be.greaterThan(0);
-    });
-});
+// describe('makeMatch', () => {
+//     it('should have makeMatch', () => {
+//         expect(playableMatchFactory.makeMatch).not.to.be.undefined;
+//     });
+// });
+//
+// describe('playableMatch', () => {
+//
+//     let playableMatch;
+//
+//     beforeEach(() => {
+//         playableMatch = playableMatchFactory.makeMatch();
+//     });
+//
+//     it('should have commands', () => {
+//         expect(playableMatch.matchCommands).not.to.be.undefined;
+//     });
+// });
+//
+// describe('matchCommands', () => {
+//
+//     let commands = [];
+//
+//     beforeEach(() => {
+//         let playableMatch = playableMatchFactory.makeMatch();
+//         commands = [...playableMatch.matchCommands()]
+//     });
+//
+//     it('should have commands', () => {
+//         expect(commands.length).to.be.greaterThan(0);
+//     });
+// });
 
 describe('startWarmup', () => {
 

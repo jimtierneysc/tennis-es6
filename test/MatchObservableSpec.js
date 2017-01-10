@@ -3,14 +3,12 @@
  */
 
 import {expect} from 'chai';
-import {matchObservable} from '../src/match/match-observable';
+import {MatchObservable} from '../src/match/match-observable';
 
+
+const matchObservable = new MatchObservable();
 
 describe('matchObservable', () => {
-
-    it('should exist', () => {
-        expect(matchObservable).to.exist;
-    });
 
     const testCases = [
         {

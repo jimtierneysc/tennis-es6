@@ -1,4 +1,3 @@
-
 import {Match} from './match-entity'
 class MatchFactory {
 
@@ -16,6 +15,7 @@ class MatchFactory {
 
     }
 
+    // TODO: Remove
     addPlayers(match, options) {
         let playerCount = 0;
         if (options.doubles) {

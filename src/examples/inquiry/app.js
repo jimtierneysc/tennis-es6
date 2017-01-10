@@ -1,39 +1,39 @@
 'use strict';
 import inquirer from 'inquirer';
 import {playableMatchFactory} from '../../match/match-playable-factory';
-import {matchObservable} from '../../match/match-observable';
 import {Match} from '../../match/match-entity';
 
 class MatchPlay {
 
-    constructor(match) {
-        this.match = match;
+    constructor(playable) {
+        this.playable = playable;
+        this.observable = playable.match.observable;
         this.onScores = (entity) => {
             console.log(`${entity.constructor.name}, index: ${entity.index}, score: ${JSON.stringify(entity.scores)}`)
         };
         this.onWinner = (entity) => {
-            console.log(`${entity.constructor.name}, index: ${entity.index}, score: ${JSON.stringify(entity.scores)}`)
+            console.log(`${entity.constructor.name}, index: ${entity.index}, winner: ${entity.winnerId}`)
         };
-        matchObservable.subscribeScores(this.onScores);
-        matchObservable.subscribeWinner(this.onWinner);
+        this.observable.subscribeScores(this.onScores);
+        this.observable.subscribeWinner(this.onWinner);
         this.map = new Map();
         this.showMainMenu = true;
         this.done = false;
         this.questions = {
-            type: 'list',
+            type: 'rawlist',
             name: 'command',
             message: 'What do you want to do?',
-            choices: ['a', 'b']
+            choices: []
         };
     }
 
     dispose() {
-        matchObservable.unSubscribeScores(this.onScores);
-        matchObservable.unSubscribeWinner(this.onWinner);
+        this.observable.unSubscribeScores(this.onScores);
+        this.observable.unSubscribeWinner(this.onWinner);
     }
 
     showHistory() {
-        for (const item of this.match.historyList) {
+        for (const item of this.playable.historyList) {
             console.log(item.title);
         }
     }
@@ -46,13 +46,8 @@ class MatchPlay {
             this.map.set('history', () => this.showHistory());
             this.map.set('quit', () => this.done = true);
         } else {
-            let commands = Array.prototype.concat(
-                [...this.match.setGameCommands()],
-                [...this.match.matchSetCommands()],
-                [...this.match.matchCommands()],
-                [...this.match.otherCommands()]);
-            for (let c of commands) {
-                this.map.set(c.title, () => this.match.commandInvoker.invoke(c));
+            for (let c of this.playable.allCommands()) {
+                this.map.set(c.title, () => this.playable.commandInvoker.invoke(c));
             }
             this.map.set('menu', () => this.showMainMenu = true);
         }
@@ -87,8 +82,8 @@ class MatchPlay {
     }
 }
 
-let match = playableMatchFactory.makeMatch();
-let matchPlay = new MatchPlay(match);
+let playable = playableMatchFactory.makeMatch();
+let matchPlay = new MatchPlay(playable);
 matchPlay.startPlay().then((value) => {
     console.log(value);
     matchPlay.dispose();

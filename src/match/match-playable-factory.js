@@ -11,46 +11,41 @@ import {MatchPlayableServices} from './match-playable-services';
 
 class PlayableMatchFactory {
 
+
+    // TODO: Support options (e.g.; options.doubles)
     makeMatchCommon(options, value) {
 
-        // TODO: Get kinds for elsewhere
+        // DI container
+        const container = new Container();
+        container.registerInstance(Container, container);
 
-        // 0. Register all objects with container
-        // 0.1 pass container to constructors?  Or just instantiate using containers and
-        // contructor will get objects implicitely?  or pass root object that has container
-        // 1. create container
-        // 2. Add historyList
-        // 2.1 add invoker
-        // 3. add match
-        // 4. add command factory
-        // 5. add/inject match strategies
-        // (add everything to container here)
-        // (create all commands with Di)
-        // for consistency, always use factory to create object?
-
-        let container = new Container();
-        let match = (value) ? matchFactory.loadMatch(value) : matchFactory.createMatch();
+        // Match entity
+        const match = (value) ? matchFactory.loadMatch(value) : matchFactory.createMatch();
         container.registerInstance(Match, match);
+
+        // Command history list
         container.registerInstance(MatchHistoryList, new MatchHistoryList());
+
+        // Command invoker
         container.registerInstance(MatchCommandInvoker, container.get(MatchCommandInvoker));
-        let services = new MatchPlayableServices(container, match); // TODO: get from match value
-        container.registerInstance(MatchPlayableServices, services);
-        for (const service of services) {
-            container.registerHandler(service.key, service.get);
-        }
-        return new PlayableMatch(container);
+
+        // Services to play this match
+        const services = container.get(MatchPlayableServices);
+
+        // Register services with DI container
+        services.register(container);
+
+        const result =  new PlayableMatch(container);
+        result.dispose = ()=> services.dispose(); // clean up events
+        return result;
     }
 
-
     makeMatch(options) {
-
         return this.makeMatchCommon(options);
-
     }
 
     makeMatchFromValue(value) {
         return this.makeMatchCommon(undefined, value);
-
     }
 }
 
