@@ -1,7 +1,11 @@
 import {MatchHistoryList, MatchHistoryCommand} from './match-history'
+import 'aurelia-polyfills';
 
 class MatchCommandInvoker {
 
+    static inject() {
+        return [MatchHistoryList];
+    }
     constructor(historyList) {
         this._historyList = historyList;
         this._undoStack = [];

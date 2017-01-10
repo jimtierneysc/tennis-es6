@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {matchFactory} from '../src/match/match-factory';
+import {playableMatchFactory} from '../src/match/match-playable-factory';
 import {Match} from '../src/match/match-entity';
 import {Utils as util} from './MatchCommandUtils';
 // import * as _ from 'lodash';
@@ -131,7 +131,7 @@ describe('serialize', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
     });
 
     describe('empty match', () => {

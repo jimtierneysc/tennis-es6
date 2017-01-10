@@ -1,50 +1,48 @@
 
 import {UndoOperation, StartOver} from './match-command'
 import {Match} from './match-entity';
+import {MatchHistoryList} from './match-history';
+import {MatchCommandInvoker} from './match-command-invoker'
+import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './match-strategy'
 class PlayableMatch  {
 
-    constructor(container, match, commandStrategy, commandInvoker, historyList) {
-        this._container = container;
-        this._commandStrategy = commandStrategy;
-        this._commandInvoker = commandInvoker;
-        this._historyList = historyList;
+    constructor(container) {
+        this.container = container;
     }
 
     dispose() {
-        this.commandStrategy.dispose();
-    }
-
-    get container() {
-        return this._container;
-
+        // TODO
+        // this.commandStrategy.dispose();
     }
 
     get match() {
         return this.container.get(Match);
     }
 
-    get commandStrategy() {
-        return this._commandStrategy;
+    get commandInvoker() {
+        return this.container.get(MatchCommandInvoker);
     }
 
-    get commandInvoker() {
-        return this._commandInvoker;
+    get matchCommandStrategy() {
+        return this.container.get(MatchCommandStrategy);
+    }
+
+    get servingStrategy() {
+        return this.container.get(ServingStrategy);
     }
 
     get historyList() {
-        return this._historyList;
+        return this.container.get(MatchHistoryList);
     }
 
     *otherCommands() {
         if (this.commandInvoker.canUndo) {
-            let undo = this.container.get(UndoOperation);
-            // yield new UndoOperation(this.commandInvoker);
-            yield undo;
+            yield this.container.get(UndoOperation);
         }
 
-        if (this.commandStrategy.matchCommandStrategy.canStartOver) {
+        if (this.matchCommandStrategy.canStartOver) {
             yield new StartOver(()=> {
-                this.commandStrategy.matchCommandStrategy.startOver();
+                this.matchCommandStrategy.startOver();
                 this.commandInvoker.clearCommands();
             });
         }
@@ -58,22 +56,16 @@ class PlayableMatch  {
     }
 
     matchCommands() {
-        return this.commandStrategy.matchCommands();
+        return this.container.get(MatchCommandStrategy).commands();
     }
 
     matchSetCommands() {
-        return this.commandStrategy.matchSetCommands();
+        return this.container.get(SetCommandStrategy).commands();
     }
 
     setGameCommands() {
-        return this.commandStrategy.setGameCommands();
+        return this.container.get(GameCommandStrategy).commands();
     }
-
-
-    // invoke(command) {
-    //     console.log(`invoking: ${command.title}`);
-    //     this.commandInvoker.invoke(command);
-    // }
 
 }
 

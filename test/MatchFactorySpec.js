@@ -3,14 +3,13 @@
  */
 
 import {expect} from 'chai';
-import {matchFactory} from '../src/match/match-factory';
-import {MatchCharacteristics} from '../src/match/match-characteristics'
+import {playableMatchFactory} from '../src/match/match-playable-factory';
 
 
 describe('makeMatch', () => {
 
     it('should have makeMatch', () => {
-        expect(matchFactory.makeMatch).not.to.be.undefined;
+        expect(playableMatchFactory.makeMatch).not.to.be.undefined;
     });
 });
 
@@ -18,15 +17,11 @@ describe('playableMatch', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
     });
 
     it('should have match', () => {
         expect(playableMatch.match).to.exist;
-    });
-
-    it('should have commandStrategy', () => {
-        expect(playableMatch.commandStrategy).to.exist;
     });
 
     it('should have commandInvoker', () => {
@@ -53,7 +48,7 @@ describe('players', () => {
         let playableMatch;
 
         beforeEach(() => {
-            playableMatch = matchFactory.makeMatch();
+            playableMatch = playableMatchFactory.makeMatch();
         });
 
         it('should have two players', () => {
@@ -65,7 +60,7 @@ describe('players', () => {
         let playableMatch;
 
         beforeEach(() => {
-            playableMatch = matchFactory.makeMatch();
+            playableMatch = playableMatchFactory.makeMatch();
         });
     });
 });
@@ -76,7 +71,7 @@ describe('opponents', () => {
         let playableMatch;
 
         beforeEach(() => {
-            playableMatch = matchFactory.makeMatch();
+            playableMatch = playableMatchFactory.makeMatch();
         });
 
         it('should have two opponents', () => {
@@ -93,26 +88,26 @@ describe('opponents', () => {
         });
     });
 
-    describe('doubles', () => {
-        let playableMatch;
-
-        beforeEach(() => {
-            playableMatch = matchFactory.makeMatch(MatchCharacteristics.TwoSetDoubles);
-        });
-
-        it('should have two opponents', () => {
-            expect([...playableMatch.match.opponents].length).to.be.equal(2);
-        });
-
-        describe('players per opponent', () => {
-            it('should have two players', () => {
-                expect([...playableMatch.match.opponents.first.players].length).to.be.equal(2);
-            });
-            it('should have two players', () => {
-                expect([...playableMatch.match.opponents.second.players].length).to.be.equal(2);
-            });
-        });
-    });
+    // describe('doubles', () => {
+    //     let playableMatch;
+    //
+    //     beforeEach(() => {
+    //         playableMatch = playableMatchFactory.makeMatch(MatchCharacteristics.TwoSetDoubles);
+    //     });
+    //
+    //     it('should have two opponents', () => {
+    //         expect([...playableMatch.match.opponents].length).to.be.equal(2);
+    //     });
+    //
+    //     describe('players per opponent', () => {
+    //         it('should have two players', () => {
+    //             expect([...playableMatch.match.opponents.first.players].length).to.be.equal(2);
+    //         });
+    //         it('should have two players', () => {
+    //             expect([...playableMatch.match.opponents.second.players].length).to.be.equal(2);
+    //         });
+    //     });
+    // });
 });
 
 

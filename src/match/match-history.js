@@ -1,11 +1,10 @@
 // import {MatchStrategy} from './match-commandStrategy'
 
 import {ScoreComponent, ScoreComponentList} from './match-component';
-import {matchCommandRegistry} from './match-command-registry'
 
 class MatchHistoryList extends ScoreComponentList {
-    constructor(owner, value) {
-        super(owner, value || []);
+    constructor(value) {
+        super(null, value || []);
     }
 
     factory(value) {

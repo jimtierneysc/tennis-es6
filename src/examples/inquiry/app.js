@@ -1,10 +1,10 @@
 'use strict';
 import inquirer from 'inquirer';
-import {matchFactory} from '../../match/match-factory';
+import {playableMatchFactory} from '../../match/match-playable-factory';
 import {matchObservable} from '../../match/match-observable';
 import {Match} from '../../match/match-entity';
 
-class PlayMatch {
+class MatchPlay {
 
     constructor(match) {
         this.match = match;
@@ -87,9 +87,9 @@ class PlayMatch {
     }
 }
 
-let match = matchFactory.makeMatch();
-let playMatch = new PlayMatch(match);
-playMatch.startPlay().then((value) => {
+let match = playableMatchFactory.makeMatch();
+let matchPlay = new MatchPlay(match);
+matchPlay.startPlay().then((value) => {
     console.log(value);
-    playMatch.dispose();
+    matchPlay.dispose();
 });

@@ -3,122 +3,17 @@
  */
 
 import {expect} from 'chai';
-import {matchFactory} from '../src/match/match-factory';
+import {playableMatchFactory} from '../src/match/match-playable-factory';
 import {
     StartWarmup, StartPlay, StartOver, StartSet, StartMatchTiebreak,
     StartGame, StartSetTiebreak, WinMatchTiebreak,
     WinGame, WinSetTiebreak, UndoOperation
 } from '../src/match/match-command';
-import {MatchCharacteristics} from '../src/match/match-characteristics'
 import {Utils as util} from './MatchCommandUtils';
-
-// function findCommand(commands, type) {
-//     return commands.find((value) => value instanceof type);
-// }
-//
-// function filterCommands(commands, type) {
-//     return commands.filter((value) => {
-//         return value instanceof type
-//     });
-// }
-//
-// function tryStartSet(playableMatch) {
-//     let commands = filterCommands([...playableMatch.matchCommands()], StartPlay);
-//     if (commands.length > 0)
-//         playableMatch.commandInvoker.invoke(commands[0]); // start play
-//     commands = filterCommands([...playableMatch.matchCommands()], StartSet);
-//     if (commands.length > 0)
-//         playableMatch.commandInvoker.invoke(commands[0]); // start set
-// }
-//
-// function startWarmup(playableMatch) {
-//     let commands = filterCommands([...playableMatch.matchCommands()], StartWarmup);
-//     playableMatch.commandInvoker.invoke(commands[0]); // start warmup
-// }
-//
-// function startPlay(playableMatch) {
-//     let commands = filterCommands([...playableMatch.matchCommands()], StartPlay);
-//     playableMatch.commandInvoker.invoke(commands[0]); // start play
-// }
-//
-// function tryStartGame(playableMatch) {
-//     let commands = filterCommands([...playableMatch.matchSetCommands()], StartGame);
-//     if (commands.length > 0)
-//         playableMatch.commandInvoker.invoke(commands[0]);
-// }
-//
-// function winGame(playableMatch, opponent) {
-//     let commands = filterCommands([...playableMatch.setGameCommands()], WinGame);
-//     if (commands.length > 0)
-//         playableMatch.commandInvoker.invoke(commands[opponent - 1]);
-//     else
-//         throw new Error('can\'t win game');
-// }
-//
-// function startSetTiebreak(playableMatch) {
-//     let commands = filterCommands([...playableMatch.matchSetCommands()], StartSetTiebreak);
-//     if (commands.length > 0)
-//         playableMatch.commandInvoker.invoke(commands[0]);
-//     else
-//         throw new Error('can\'t start set tiebreak');
-// }
-//
-// function winSetTiebreak(playableMatch, opponent) {
-//     let commands = filterCommands([...playableMatch.setGameCommands()], WinSetTiebreak);
-//     if (commands.length > 0)
-//         playableMatch.commandInvoker.invoke(commands[opponent-1]);
-//     else
-//         throw new Error('can\'t win set tiebreak');
-// }
-//
-// function winGames(playableMatch, opponent, count) {
-//     tryStartSet(playableMatch);
-//     while (count--) {
-//         tryStartGame(playableMatch);
-//         winGame(playableMatch, opponent);
-//     }
-// }
-//
-// function winSet(playableMatch, opponent) {
-//     tryStartSet(playableMatch);
-//     while (!playableMatch.match.sets.last.winnerId) {
-//         winGames(playableMatch, opponent, 1);
-//     }
-// }
-//
-// function startMatchTiebreak(playableMatch) {
-//     let commands = filterCommands([...playableMatch.matchCommands()], StartMatchTiebreak);
-//     if (commands.length === 0)
-//         throw new Error('Can\'t start match tiebreak');
-//     playableMatch.commandInvoker.invoke(commands[0]);
-// }
-//
-// function winMatchTiebreak(playableMatch, opponent) {
-//     let commands = filterCommands([...playableMatch.setGameCommands()], WinMatchTiebreak);
-//     if (commands.length === 0)
-//         throw new Error('Can\'t win match tiebreak');
-//     playableMatch.commandInvoker.invoke(commands[opponent - 1]);
-// }
-//
-// function hasCommands(playableMatch, classes) {
-//     let commands = [...playableMatch.allCommands()].map((value)=>value.constructor.name);
-//     let result = classes.length === commands.length;
-//     if (result) {
-//         let classNames = classes.map((value)=>value.name);
-//         result = commands.sort().join() === classNames.sort().join();
-//     }
-//     if (!result) {
-//         let classNames = classes.map((value)=>value.name);
-//         console.log(`commands: ${commands.sort().join(',')}`)
-//         console.log(`classNames: ${classNames.sort().join(',')}`)
-//     }
-//     return result;
-// }
-
 
 describe('makeMatch', () => {
     it('should have makeMatch', () => {
-        expect(matchFactory.makeMatch).not.to.be.undefined;
+        expect(playableMatchFactory.makeMatch).not.to.be.undefined;
     });
 });
 
@@ -127,7 +22,7 @@ describe('playableMatch', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
     });
 
     it('should have commands', () => {
@@ -140,7 +35,7 @@ describe('matchCommands', () => {
     let commands = [];
 
     beforeEach(() => {
-        let playableMatch = matchFactory.makeMatch();
+        let playableMatch = playableMatchFactory.makeMatch();
         commands = [...playableMatch.matchCommands()]
     });
 
@@ -155,7 +50,7 @@ describe('startWarmup', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         command = util.findCommand([...playableMatch.matchCommands()], StartWarmup);
     });
 
@@ -191,7 +86,7 @@ describe('startWarmup', () => {
 //     let playableMatch;
 //
 //     beforeEach(() => {
-//         playableMatch = matchFactory.makeMatch(MatchCharacteristics.TwoSetDoubles);
+//         playableMatch = playableMatchFactory.makeMatch(MatchCharacteristics.TwoSetDoubles);
 //         commands = filterCommands([...playableMatch.matchCommands()], StartPlay);
 //     });
 //
@@ -233,7 +128,7 @@ describe('startPlay', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         commands = util.filterCommands([...playableMatch.matchCommands()], StartPlay);
     });
 
@@ -248,7 +143,7 @@ describe('winGame', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         util.startPlay(playableMatch);
         commands = util.filterCommands([...playableMatch.setGameCommands()], WinGame);
     });
@@ -274,7 +169,7 @@ describe('startGame-first-set', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         util.startPlay(playableMatch);
         util.winGame(playableMatch, 1);
         commands = util.filterCommands([...playableMatch.matchSetCommands()], StartGame);
@@ -321,7 +216,7 @@ describe('startGame-first-set', () => {
 });
 
 describe('win-set', () => {
-    const playableMatch = matchFactory.makeMatch();
+    const playableMatch = playableMatchFactory.makeMatch();
     util.startPlay(playableMatch);
 
     for (let i = 1; i <= 6; i++) {
@@ -387,7 +282,7 @@ describe('win-set', () => {
 describe('second-set', () => {
     let playableMatch;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         util.startPlay(playableMatch);
         util.winSet(playableMatch, 1);
     });
@@ -423,7 +318,7 @@ describe('match-tiebreak', () => {
     let playableMatch;
     let commands;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         util.winSet(playableMatch, 1);
         util.winSet(playableMatch, 2);
         commands = util.filterCommands([...playableMatch.matchCommands()], StartMatchTiebreak);
@@ -470,7 +365,7 @@ describe('set-tiebreak', () => {
     let playableMatch;
     let commands;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         util.winGames(playableMatch, 1, 5);
         util.winGames(playableMatch, 2, 6);
         util.winGames(playableMatch, 1, 1);
@@ -517,7 +412,7 @@ describe('set-tiebreak', () => {
 describe('win-match', () => {
     let playableMatch;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
     });
 
     describe('in-2-sets', () => {
@@ -548,7 +443,7 @@ describe('win-match', () => {
 describe('start-over', () => {
     let playableMatch;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
         util.winSet(playableMatch, 1);
         util.winSet(playableMatch, 1);
     });
@@ -586,7 +481,7 @@ describe('start-over', () => {
 describe('undo', () => {
     let playableMatch;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
     });
 
     describe('start-warmup', ()=>{
@@ -1011,7 +906,7 @@ describe('undo', () => {
 describe('all-commands', ()=>{
     let playableMatch;
     beforeEach(() => {
-        playableMatch = matchFactory.makeMatch();
+        playableMatch = playableMatchFactory.makeMatch();
     });
 
     describe('new-match', ()=>{

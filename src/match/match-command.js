@@ -4,8 +4,6 @@ import {MatchCommandInvoker} from './match-command-invoker'
 import {MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy} from './match-strategy'
 import 'aurelia-polyfills';
 
-
-
 class StartWarmup {
     static inject() {
         return [MatchCommandStrategy];
