@@ -20,6 +20,7 @@ class MatchPlayableServices {
     static inject() {
         return [Container, Match]
     }
+
     constructor(container, match) {
         this.container = container;
         this.match = match;
@@ -31,7 +32,13 @@ class MatchPlayableServices {
     }
 
     dispose() {
-        this._onWinnerStrategy.dispose();
+        if (this._onWinnerStrategy)
+            this._onWinnerStrategy.dispose();
+    }
+
+    run() {
+        // Subscribe to events
+        this._onWinnerStrategy = this.container.get(OnWinnerStrategy);
     }
 
     register(container) {
@@ -43,9 +50,7 @@ class MatchPlayableServices {
             () => () => this.matchSetCommandStrategy);
         container.registerHandler(MatchCommandStrategy,
             () => () => this.matchCommandStrategy);
-
-        // The following strategy subscribes to events.  Must always create.
-        this._onWinnerStrategy = container.get(OnWinnerStrategy);
+        // this._onWinnerStrategy = this.container.get(OnWinnerStrategy);
     }
 
     createFromFactory(klass, ...rest) {

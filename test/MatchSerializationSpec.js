@@ -1,7 +1,7 @@
 import {expect} from 'chai';
 import {playableMatchFactory} from '../src/match/match-playable-factory';
 import {Match} from '../src/match/match-entity';
-import {Utils as util} from './MatchCommandUtils';
+import {Utils as util} from './MatchCommandUtil';
 // import * as _ from 'lodash';
 
 
@@ -14,7 +14,7 @@ class compare {
     static equal(value1, value2) {
         try {
             compare.opponents(value1.opponents, value2.opponents);
-            compare.players(value1.players, value2.players);
+            // compare.players(value1.players, value2.players);
             compare.servers(value1.servers, value2.servers);
             compare.sets(value1.sets, value2.sets);
             compare.winner(value1, value2);
@@ -50,18 +50,18 @@ class compare {
         compare.iterate(value1.players, value2.players, (value1, value2) => compare.playerRef(value1, value2))
     }
 
-    static players(value1, value2) {
-        if (value1.list.count != value2.list.count)
-            compare.error('players');
-        if (value1.lastId != value2.lastId)
-            compare.error('lastId');
-        compare.iterate(value1.list, value2.list, (value1, value2) => compare.player(value1, value2))
-    }
-
-    static player(value1, value2) {
-        if (value1.id != value2.id)
-            compare.error('server');
-    }
+    // static players(value1, value2) {
+    //     if (value1.list.count != value2.list.count)
+    //         compare.error('players');
+    //     if (value1.lastId != value2.lastId)
+    //         compare.error('lastId');
+    //     compare.iterate(value1.list, value2.list, (value1, value2) => compare.player(value1, value2))
+    // }
+    //
+    // static player(value1, value2) {
+    //     if (value1.id != value2.id)
+    //         compare.error('server');
+    // }
 
     static playerRef(value1, value2) {
         if (value1.id != value2.id)
@@ -131,7 +131,7 @@ describe('serialize', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = playableMatchFactory.makeMatch();
+        playableMatch = util.makeMatch();
     });
 
     describe('empty match', () => {

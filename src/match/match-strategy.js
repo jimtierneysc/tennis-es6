@@ -2,7 +2,7 @@ import {
     StartWarmup, StartPlay, StartSet,
     StartSetTiebreak, WinSetTiebreak,
     StartMatchTiebreak, WinMatchTiebreak,
-    StartGame, WinGame, StartOver
+    StartGame, WinGame
 } from './match-command';
 
 import {Match, MatchSet, SetGame} from './match-entity'
@@ -420,7 +420,7 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
         if (this._canStartGame) {
             if (!this.servingStrategy().areServersKnown) {
                 for (let player of this.servingStrategy().serverChoices()) {
-                    yield createFromFactory(player.id);
+                    yield this.createFromFactory(player.id);
                 }
             } else {
                 yield this.createFromFactory();
@@ -438,10 +438,10 @@ class GameCommandStrategy {
 class CommonGameCommandStrategy extends GameCommandStrategy {
 
     static inject() {
-        return [Container, Match,];
+        return [Container, Match];
     }
 
-    constructor(container, match, matchSetStrategy) {
+    constructor(container, match) {
         super();
         this.container = container;
         this.opponents = match.opponents;

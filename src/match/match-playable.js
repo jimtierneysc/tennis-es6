@@ -1,11 +1,10 @@
-
 import {UndoOperation, StartOver} from './match-command'
 import {Match} from './match-entity';
 import {MatchHistoryList} from './match-history';
 import {MatchCommandInvoker} from './match-command-invoker'
 import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './match-strategy'
 
-class PlayableMatch  {
+class PlayableMatch {
 
     constructor(container) {
         this.container = container;
@@ -46,7 +45,7 @@ class PlayableMatch  {
 
         if (this.matchCommandStrategy.canStartOver) {
             yield this.container.get(StartOver);
-       }
+        }
     }
 
     * allCommands() {

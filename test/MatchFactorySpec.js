@@ -3,13 +3,17 @@
  */
 
 import {expect} from 'chai';
-import {playableMatchFactory} from '../src/match/match-playable-factory';
+import {createNewPlayableMatch, createPlayableMatchFromValue} from '../src/match/match-playable-factory';
+import {Utils as util} from './MatchCommandUtil';
 
 
-describe('makeMatch', () => {
+describe('factory', () => {
 
     it('should have makeMatch', () => {
-        expect(playableMatchFactory.makeMatch).not.to.be.undefined;
+        expect(createNewPlayableMatch).to.exist
+    });
+    it('should have makeMatch', () => {
+        expect(createPlayableMatchFromValue).to.exist
     });
 });
 
@@ -17,7 +21,7 @@ describe('playableMatch', () => {
     let playableMatch;
 
     beforeEach(() => {
-        playableMatch = playableMatchFactory.makeMatch();
+        playableMatch = util.makeMatch();
     });
 
     it('should have match', () => {
@@ -42,28 +46,28 @@ describe('playableMatch', () => {
 
 });
 
-describe('players', () => {
-
-    describe('singles', () => {
-        let playableMatch;
-
-        beforeEach(() => {
-            playableMatch = playableMatchFactory.makeMatch();
-        });
-
-        it('should have two players', () => {
-            expect(playableMatch.match.players.list.count).to.be.equal(2);
-        });
-    });
-
-    describe('doubles', () => {
-        let playableMatch;
-
-        beforeEach(() => {
-            playableMatch = playableMatchFactory.makeMatch();
-        });
-    });
-});
+// describe('players', () => {
+//
+//     describe('singles', () => {
+//         let playableMatch;
+//
+//         beforeEach(() => {
+//             playableMatch = makeMatch();
+//         });
+//
+//         it('should have two players', () => {
+//             expect(playableMatch.match.players.list.count).to.be.equal(2);
+//         });
+//     });
+//
+//     describe('doubles', () => {
+//         let playableMatch;
+//
+//         beforeEach(() => {
+//             playableMatch = makeMatch();
+//         });
+//     });
+// });
 
 describe('opponents', () => {
 
@@ -71,7 +75,7 @@ describe('opponents', () => {
         let playableMatch;
 
         beforeEach(() => {
-            playableMatch = playableMatchFactory.makeMatch();
+            playableMatch = util.makeMatch();
         });
 
         it('should have two opponents', () => {

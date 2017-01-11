@@ -1,8 +1,9 @@
 import {
-    StartWarmup, StartPlay, StartOver, StartSet, StartMatchTiebreak,
+    StartWarmup, StartPlay, StartSet, StartMatchTiebreak,
     StartGame, StartSetTiebreak, WinMatchTiebreak,
-    WinGame, WinSetTiebreak, UndoOperation
+    WinGame, WinSetTiebreak
 } from '../src/match/match-command';
+import {createNewPlayableMatch} from '../src/match/match-playable-factory';
 
 class Utils {
     static findCommand(commands, type) {
@@ -107,6 +108,16 @@ class Utils {
             console.log(`classNames: ${classNames.sort().join(',')}`)
         }
         return result;
+    }
+
+    static makeMatch() {
+        const players = [{id: 1}, {id: 2}];
+        const options = {
+            singles: true,
+            players: players
+        };
+        return createNewPlayableMatch(options);
+
     }
 }
 

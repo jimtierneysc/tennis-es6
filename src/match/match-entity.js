@@ -106,53 +106,53 @@ class MatchSets extends MatchComponentList {
     }
 }
 
-class Player extends MatchComponent {
+// class Player extends MatchComponent {
+//
+//     constructor(parent, value) {
+//         super(parent.owner, parent, value || {id: parent.parent._nextId()});
+//     }
+//
+//     get name() {
+//         return this.value.name || '';
+//     }
+//
+//     set name(value) {
+//         this.value.name = value;
+//     }
+//
+//     get id() {
+//         return this.value.id;
+//     }
+// }
 
-    constructor(parent, value) {
-        super(parent.owner, parent, value || {id: parent.parent._nextId()});
-    }
-
-    get name() {
-        return this.value.name || "";
-    }
-
-    set name(value) {
-        this.value.name = value;
-    }
-
-    get id() {
-        return this.value.id;
-    }
-}
-
-class PlayerList extends MatchComponentList {
-    constructor(parent, value) {
-        super(parent.owner, parent, value);
-    }
-
-    factory(value) {
-        return new Player(this, value);
-    }
-
-}
-
-const _list = new WeakMap();
-class Players extends MatchComponent {
-    constructor(owner, value) {
-        super(owner, undefined, value || {lastId: 0});
-        _list.set(this, new PlayerList(this, this.initArray('list')));
-    }
-
-    get list() {
-        return _list.get(this);
-    }
-
-    _nextId() {
-        let result = this.value.idCounter || 1;
-        this.value.idCounter = result + 1;
-        return result;
-    }
-}
+// class PlayerList extends MatchComponentList {
+//     constructor(parent, value) {
+//         super(parent.owner, parent, value);
+//     }
+//
+//     factory(value) {
+//         return new Player(this, value);
+//     }
+//
+// }
+//
+// const _list = new WeakMap();
+// class Players extends MatchComponent {
+//     constructor(owner, value) {
+//         super(owner, undefined, value || {lastId: 0});
+//         _list.set(this, new PlayerList(this, this.initArray('list')));
+//     }
+//
+//     get list() {
+//         return _list.get(this);
+//     }
+//
+//     _nextId() {
+//         let result = this.value.idCounter || 1;
+//         this.value.idCounter = result + 1;
+//         return result;
+//     }
+// }
 
 class PlayerRef extends MatchComponent {
 
@@ -241,6 +241,11 @@ class Opponents extends MatchComponent {
         yield this.second;
     }
 
+    * players() {
+        yield * this.first.players;
+        yield * this.second.players;
+    }
+
 }
 
 const _sets = new WeakMap();
@@ -249,17 +254,56 @@ const _opponents = new WeakMap();
 
 class Match extends MatchComponent {
 
-    constructor(value) {
-        super(undefined, undefined, value);
+    constructor(value, options) {
+        super(undefined, undefined, value || {options: options || {}});
         _sets.set(this, new MatchSets(this, this.initArray('sets')));
-        _players.set(this, new Players(this, this.initObj('players')));
+        // _players.set(this, new Players(this, this.initObj('players')));
         _servers.set(this, new Servers(this, this.initObj('servers')));
         _opponents.set(this, new Opponents(this, this.initObj('opponents')));
         this.initValue('scores', [0, 0]);
         this.initValue('warmingUp', undefined);
         this.initValue('winner', undefined);
         this.observable = new MatchObservable();
+        this.addOpponents();
     }
+
+
+    addOpponents() {
+        const players = this.options.players || [];
+        let playerCount = 0;
+        if (this.options.doubles) {
+            playerCount = 4;
+        }
+        else if (this.options.singles) {
+            playerCount = 2;
+        }
+        else {
+            playerCount = 2;
+        }
+
+        if (players.length < playerCount) {
+            throw new Error(`Not enough players.  ${playerCount} are required. ${players.length} are provided.`)
+        }
+
+        const map = new Map();
+        let opponent = this.opponents.first;
+        for (let i = 1; i <= playerCount && i <= players.length; i++) {
+            let player = players[i - 1];
+            if (map.get(player.id)) {
+                throw new Error('Duplicate players not allowed')
+            }
+            map.set(player.id, true);
+            opponent.players.add().id = player.id;
+            if (i === playerCount / 2) {
+                opponent = this.opponents.second;
+            }
+        }
+    }
+
+    get options() {
+        return this.value.options || {};
+    }
+
 
     get started() {
         return this.sets.count > 0;
@@ -283,10 +327,6 @@ class Match extends MatchComponent {
 
     get sets() {
         return _sets.get(this);
-    }
-
-    get players() {
-        return _players.get(this);
     }
 
     get servers() {

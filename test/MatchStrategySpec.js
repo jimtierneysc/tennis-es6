@@ -4,6 +4,7 @@
 
 import {expect} from 'chai';
 import {playableMatchFactory} from '../src/match/match-playable-factory';
+import {Utils as util} from './MatchCommandUtil'
 
 
 describe('servingStrategy', () => {
@@ -14,7 +15,7 @@ describe('servingStrategy', () => {
             let playableMatch;
             let servingStrategy;
             beforeEach(() => {
-                playableMatch = playableMatchFactory.makeMatch();
+                playableMatch = util.makeMatch();
                 servingStrategy = playableMatch.servingStrategy;
             });
 
@@ -52,9 +53,9 @@ describe('servingStrategy', () => {
             let servingStrategy;
             let players;
             beforeEach(() => {
-                playableMatch = playableMatchFactory.makeMatch();
+                playableMatch = util.makeMatch();
                 servingStrategy = playableMatch.servingStrategy;
-                players = [...playableMatch.match.players.list];
+                players = [...playableMatch.match.opponents.players()];
                 servingStrategy.newServer(players[0].id);
             });
 

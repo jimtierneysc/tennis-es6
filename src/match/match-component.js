@@ -125,7 +125,7 @@ class MatchComponentList extends MatchComponent {
         return result;
     }
 
-    factory(value) {
+    factory() {
         throw new Error('Not implemented');
     }
 

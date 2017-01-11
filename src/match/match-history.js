@@ -2,6 +2,7 @@
 
 import {MatchComponent, MatchComponentList} from './match-component';
 
+// TODO: create with DI
 class MatchHistoryList extends MatchComponentList {
     constructor(value) {
         super(null, null, value || []);

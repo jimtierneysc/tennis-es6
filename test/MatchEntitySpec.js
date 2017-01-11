@@ -5,17 +5,19 @@
 import {expect} from 'chai';
 import {Match} from '../src/match/match-entity';
 
+function createMatch() {
+  return new Match(undefined, {players: [{id: 1}, {id: 2}]})
+
+}
+
 describe('Match', () => {
 
-    const listNames = ['sets', 'players', 'games'];
+    const listNames = ['sets', 'games'];
 
     function getList(match, name) {
         const fn = {
             sets() {
                 return match.sets;
-            },
-            players() {
-                return match.players.list;
             },
             servers() {
                 return match.servers;
@@ -36,7 +38,7 @@ describe('Match', () => {
         let match;
 
         beforeEach(() => {
-            match = new Match();
+            match = createMatch();
         });
 
         it('should have scores', () => {
@@ -59,9 +61,9 @@ describe('Match', () => {
             expect(match.sets).to.exist;
         });
 
-        it('should have players', () => {
-            expect(match.players).to.exist;
-        });
+        // it('should have players', () => {
+        //     expect(match.players).to.exist;
+        // });
 
     });
 
@@ -70,7 +72,7 @@ describe('Match', () => {
 
         for (const member of listNames) {
             beforeEach(() => {
-                const match = new Match();
+                const match = createMatch();
                 obj = getList(match, member);
                 obj.add();
                 obj.add();
@@ -90,7 +92,7 @@ describe('Match', () => {
             describe(member, () => {
                 let obj;
                 beforeEach(() => {
-                    let match = new Match();
+                    let match = createMatch()
                     obj = getList(match, member);
                 });
 
@@ -122,7 +124,7 @@ describe('Match', () => {
             describe(member, () => {
                 let obj;
                 beforeEach(() => {
-                    const match = new Match();
+                    const match = createMatch()
                     obj = getList(match, member);
                 });
 
@@ -140,52 +142,52 @@ describe('Match', () => {
         }
     });
 
-    describe('Player.name', () => {
-        let player;
-        beforeEach(() => {
-            const match = new Match();
-            player = match.players.list.add();
-        });
+    // describe('Player.name', () => {
+    //     let player;
+    //     beforeEach(() => {
+    //         const match = createMatch()
+    //         player = match.players.list.add();
+    //     });
+    //
+    //     it('is blank', () => {
+    //         expect(player.name).to.be.equal('');
+    //     });
+    //
+    //     it('can be set', () => {
+    //         player.name = 'test';
+    //         expect(player.name).to.be.equal('test');
+    //     });
+    //
+    //     it('can be cleared', () => {
+    //         player.name = undefined;
+    //         expect(player.name).to.be.equal('');
+    //     });
+    //
+    // });
 
-        it('is blank', () => {
-            expect(player.name).to.be.equal('');
-        });
-
-        it('can be set', () => {
-            player.name = 'test';
-            expect(player.name).to.be.equal('test');
-        });
-
-        it('can be cleared', () => {
-            player.name = undefined;
-            expect(player.name).to.be.equal('');
-        });
-
-    });
-
-    describe('Player.id', () => {
-        let players;
-        beforeEach(() => {
-            players = new Match().players;
-        });
-
-        it('has id 1', () => {
-            players.list.add();
-            expect(players.list.last.id).to.be.equal(1);
-        });
-
-        it('has id 2', () => {
-            players.list.add();
-            players.list.add();
-            expect(players.list.last.id).to.be.equal(2);
-        });
-
-    });
+    // describe('Player.id', () => {
+    //     let players;
+    //     beforeEach(() => {
+    //         players = new Match().players;
+    //     });
+    //
+    //     it('has id 1', () => {
+    //         players.list.add();
+    //         expect(players.list.last.id).to.be.equal(1);
+    //     });
+    //
+    //     it('has id 2', () => {
+    //         players.list.add();
+    //         players.list.add();
+    //         expect(players.list.last.id).to.be.equal(2);
+    //     });
+    //
+    // });
 
     describe('Server.id', () => {
         let server;
         beforeEach(() => {
-            const match = new Match();
+            const match = createMatch()
             server = match.servers.players.add();
         });
 
@@ -208,48 +210,39 @@ describe('Match', () => {
     describe('Opponents', () => {
         let opponents;
         beforeEach(() => {
-            const match = new Match();
+            const match = createMatch()
             opponents = match.opponents;
         });
 
         it('has first', () => {
-            expect(opponents.first.players.count).to.be.equal(0);
+            expect(opponents.first.players.count).to.be.equal(1);
         });
 
         it('has second', () => {
-            expect(opponents.second.players.count).to.be.equal(0);
+            expect(opponents.second.players.count).to.be.equal(1);
         });
 
         it('has first players', () => {
-            opponents.first.players.add();
             expect(opponents.first.players.count).to.be.equal(1);
         });
 
         it('has second players', () => {
-            opponents.second.players.add();
-            opponents.second.players.add();
-            expect(opponents.second.players.count).to.be.equal(2);
+            expect(opponents.second.players.count).to.be.equal(1);
         });
 
         describe('contains', () => {
-            beforeEach(() => {
-                opponents.first.players.add().id = 1;
-                opponents.first.players.add().id = 2;
-                opponents.second.players.add().id = 3;
-                opponents.second.players.add().id = 4;
-            });
 
-            it('first contains', () => {
-                expect(opponents.first.players.containsValue({id: 2})).to.be.true;
+            it('should in first', () => {
+                expect(opponents.first.players.containsValue({id: 1})).to.be.true;
             });
-            it('first does not contain', () => {
-                expect(opponents.first.players.containsValue({id: 3})).not.to.be.true;
+            it('should not in first', () => {
+                expect(opponents.first.players.containsValue({id: 2})).not.to.be.true;
             });
-            it('second contains', () => {
-                expect(opponents.second.players.containsValue({id: 3})).to.be.true;
+            it('should in second', () => {
+                expect(opponents.second.players.containsValue({id: 2})).to.be.true;
             });
-            it('second does not contain', () => {
-                expect(opponents.second.players.containsValue({id: 2})).not.to.be.true;
+            it('should not in second', () => {
+                expect(opponents.second.players.containsValue({id: 1})).not.to.be.true;
             });
         });
     });
