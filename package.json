@@ -3,10 +3,13 @@
   "version": "0.0.1",
   "main": "app.js",
   "scripts": {
-    "compile": "babel --presets es2015,stage-0 --plugins transform-runtime --source-maps -d lib/ src/",
-    "compile:watch": "babel --watch --presets es2015,stage-0 --plugins transform-runtime --source-maps -d lib/ src/",
+    "lint": "eslint src",
+    "compile": "babel --source-maps -d lib/ src/",
+    "compile:watch": "babel --watch --source-maps -d lib/ src/",
     "run": "babel-node src/examples/inquiry/app.js",
-    "test": "mocha --compilers js:babel-register"
+    "test": "mocha --compilers js:babel-register",
+    "test:watch": "mocha --compilers js:babel-register --reporter min --watch",
+    "test:cover": "babel-node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha"
   },
   "devDependencies": {
     "@types/lodash": "4.14.45",
@@ -17,7 +20,11 @@
     "babel-preset-stage-0": "^6.16.0",
     "babel-register": "^6.18.0",
     "chai": "^4.0.0-canary.1",
-    "mocha": "^3.2.0"
+    "istanbul": "^1.1.0-alpha.1",
+    "mocha": "^3.2.0",
+    "eslint": "^3.12.1",
+    "eslint-config-airbnb-base": "^11.0.0",
+    "eslint-plugin-import": "^2.2.0"
   },
   "xxbabel": {
     "presets": [
