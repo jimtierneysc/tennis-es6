@@ -1,8 +1,10 @@
 // import {MatchStrategy} from './match-commandStrategy'
 
-import {MatchCommandInvoker} from './match-command-invoker'
-import {MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy} from './match-strategy'
+import {MatchCommandInvoker} from './command-invoker'
+import {MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy} from './strategy'
+import {OpponentNameService, PlayerNameService} from './name-service'
 import 'aurelia-polyfills';
+
 
 class StartWarmup {
     static inject() {
@@ -17,10 +19,11 @@ class StartWarmup {
 
 class StartPlay  {
     static inject() {
-        return [MatchCommandStrategy];
+        return [MatchCommandStrategy, PlayerNameService];
     }
-    constructor(strategy, server) {
-        this.title = `start play ${server}`;
+    constructor(strategy, nameService, server) {
+        let name = nameService.getPlayerName(server);
+        this.title = `start play, server: ${name}`;
         this.execute = ()=>strategy().startPlay(server);
         this.undo = ()=>strategy().undoStartPlay(server);
     }
@@ -29,11 +32,12 @@ class StartPlay  {
 
 class WinGame  {
     static inject() {
-        return [SetCommandStrategy, GameCommandStrategy];
+        return [SetCommandStrategy, GameCommandStrategy, OpponentNameService];
     }
-    constructor(setStrategy, gameStrategy, winnerId) {
+    constructor(setStrategy, gameStrategy, nameService, winnerId) {
+        let name = nameService.getOpponentName(winnerId);
         this.title =
-            `win game[${gameStrategy().game.index}] by ${winnerId}`;
+            `win game[${gameStrategy().game.index}], winner: ${name}`;
         this.execute = ()=>gameStrategy().winGame(winnerId);
         this.undo = ()=>setStrategy().undoWinGame();
     }
@@ -41,10 +45,11 @@ class WinGame  {
 
 class WinSetTiebreak {
     static inject() {
-        return [SetCommandStrategy, GameCommandStrategy];
+        return [SetCommandStrategy, GameCommandStrategy, OpponentNameService];
     }
-    constructor(setStrategy, gameStrategy, winnerId) {
-        this.title = `win set[${setStrategy().matchSet.index}] tiebreak by ${winnerId}`;
+    constructor(setStrategy, gameStrategy, nameService, winnerId) {
+        let name = nameService.getOpponentName(winnerId);
+        this.title = `win set[${setStrategy().matchSet.index}] tiebreak, winner ${name}`;
         this.execute = ()=> gameStrategy().winGame(winnerId);
         this.undo = ()=> setStrategy().undoWinGame()
     }
@@ -52,10 +57,11 @@ class WinSetTiebreak {
 
 class WinMatchTiebreak {
     static inject() {
-        return [SetCommandStrategy, GameCommandStrategy];
+        return [SetCommandStrategy, GameCommandStrategy, OpponentNameService];
     }
-    constructor(setStrategy, gameStrategy, winnerId) {
-        this.title = `win match tiebreak ${winnerId}`;
+    constructor(setStrategy, gameStrategy, nameService, winnerId) {
+        let name = nameService.getOpponentName(winnerId);
+        this.title = `win match tiebreak, winner: ${name}`;
         this.execute = ()=> gameStrategy().winGame(winnerId);
         this.undo = ()=> setStrategy().undoWinGame();
     }
@@ -63,10 +69,14 @@ class WinMatchTiebreak {
 
 class StartGame {
     static inject() {
-        return [SetCommandStrategy];
+        return [SetCommandStrategy, PlayerNameService];
     }
-    constructor(strategy, server) {
+    constructor(strategy, nameService, server) {
         this.title = `start game[${strategy().matchSet.games.count}]`;
+        if (server) {
+            let name = nameService.getPlayerName(server);
+            this.title = `${title}, server: ${name}`
+        }
         this.execute = ()=>strategy().startGame(server);
         this.undo = ()=>strategy().undoStartGame(server);
     }

@@ -1,21 +1,22 @@
-/**
- * Created by Jim on 1/9/17.
- */
 
-import {Match} from './match-entity'
+import {Match} from './entity'
+import {createFromFactory} from './di-util'
+import {PlayerNameService, OpponentNameService} from './name-service'
 import {
     MatchCommandStrategy, CommonMatchCommandStrategy,
     SetCommandStrategy, CommonSetCommandStrategy,
     GameCommandStrategy, CommonGameCommandStrategy,
     ServingStrategy, CommonServingStrategy,
     OnWinnerStrategy
-} from './match-strategy'
+} from './strategy'
+import {MatchCommandInvoker} from './command-invoker'
+import {MatchHistoryList} from './history'
 import {
     Container, Factory
 } from 'aurelia-dependency-injection'
 import 'aurelia-polyfills'
 
-class MatchPlayableServices {
+class PlayableMatchServices {
 
     static inject() {
         return [Container, Match]
@@ -38,10 +39,16 @@ class MatchPlayableServices {
 
     run() {
         // Subscribe to events
-        this._onWinnerStrategy = this.container.get(OnWinnerStrategy);
+        this._onWinnerStrategy = createFromFactory(this.container, OnWinnerStrategy);
     }
 
     register(container) {
+        // Keep history of execute commands
+        container.registerInstance(MatchHistoryList, createFromFactory(container, MatchHistoryList));
+
+        // Command invoker
+        container.registerInstance(MatchCommandInvoker, createFromFactory(container, MatchCommandInvoker));
+
         container.registerHandler(ServingStrategy,
             () => () => this.servingStrategy);
         container.registerHandler(GameCommandStrategy,
@@ -50,26 +57,22 @@ class MatchPlayableServices {
             () => () => this.matchSetCommandStrategy);
         container.registerHandler(MatchCommandStrategy,
             () => () => this.matchCommandStrategy);
-        // this._onWinnerStrategy = this.container.get(OnWinnerStrategy);
-    }
 
-    createFromFactory(klass, ...rest) {
-        let factory = new Factory(klass);
-        let fn = factory.get(this.container);
-        let result = fn(...rest);
-        return result;
+        // Add default name services
+        container.registerInstance(PlayerNameService, createFromFactory(container, PlayerNameService));
+        container.registerInstance(OpponentNameService, createFromFactory(container, OpponentNameService));
     }
 
     get servingStrategy() {
         if (!this._servingStrategy) {
-            this._servingStrategy = this.createFromFactory(CommonServingStrategy);
+            this._servingStrategy = createFromFactory(this.container, CommonServingStrategy);
         }
         return this._servingStrategy;
     }
 
     get matchCommandStrategy() {
         if (!this._matchCommandStrategy) {
-            this._matchCommandStrategy = this.createFromFactory(CommonMatchCommandStrategy);
+            this._matchCommandStrategy = createFromFactory(this.container, CommonMatchCommandStrategy);
         }
         return this._matchCommandStrategy;
     }
@@ -77,14 +80,14 @@ class MatchPlayableServices {
 
     get setGameCommandStrategy() {
         if (!this._setGameCommandStrategy || this._setGameCommandStrategy.game != this.lastGame) {
-            this._setGameCommandStrategy = this.createFromFactory(CommonGameCommandStrategy);
+            this._setGameCommandStrategy = createFromFactory(this.container, CommonGameCommandStrategy);
         }
         return this._setGameCommandStrategy;
     }
 
     get matchSetCommandStrategy() {
         if (!this._matchSetCommandStrategy || this._matchSetCommandStrategy.matchSet != this.lastSet) {
-            this._matchSetCommandStrategy = this.createFromFactory(CommonSetCommandStrategy);
+            this._matchSetCommandStrategy = createFromFactory(this.container, CommonSetCommandStrategy);
         }
         return this._matchSetCommandStrategy;
     }
@@ -102,4 +105,4 @@ class MatchPlayableServices {
 
 }
 
-export {MatchPlayableServices};
+export {PlayableMatchServices};

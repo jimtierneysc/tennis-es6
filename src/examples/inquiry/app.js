@@ -1,9 +1,23 @@
 'use strict';
 import inquirer from 'inquirer';
-import {createNewPlayableMatch} from '../../match/match-playable-factory';
+import {createPlayableMatch} from '../../match/playable-factory';
+import {createNewMatch} from '../../match/factory';
+import {Match, MatchSet, SetGame} from '../../match/entity'
 
 
 function play() {
+
+    let players = [];
+
+    function playerId(name) {
+        // provide a unique id for each player name
+        let i = players.indexOf(name);
+        if (i < 0) {
+            i = players.length;
+            players.push(name);
+        }
+        return i + 1;
+    }
 
     const queries = {
         newMatch: 1,
@@ -23,7 +37,19 @@ function play() {
             this.query = queries.menu;
             this.menu = menus.root;
             this.done = false;
-            this.players = [];
+            this.log = [];
+            this.bottomBar = new inquirer.ui.BottomBar();
+        }
+
+        entityName(entity) {
+            let name;
+            if (entity instanceof SetGame)
+                name = `game[${entity.index}]`;
+            else if (entity instanceof MatchSet)
+                name = `set[${entity.index}]`;
+            else if (entity instanceof Match)
+                name = 'match';
+            return name;
         }
 
         createMatch(options) {
@@ -31,32 +57,34 @@ function play() {
                     singles: true,
                     players: [{id: 99}, {id: 333}]
                 };
-            const playable = createNewPlayableMatch(options);
+
+            const match = createNewMatch(options);
+            // create match
+            const playable = createPlayableMatch(match);
+
+            // event handlers
             const observable = playable.match.observable;
             observable.subscribeScores((entity) => {
-                console.log(`${entity.constructor.name}, index: ${entity.index}, score: ${JSON.stringify(entity.scores)}`)
+                const entityName = this.entityName(entity);
+                this.log.push(`${entityName}.score = ${JSON.stringify(entity.scores)}`);
             });
             observable.subscribeWinner((entity) => {
-                console.log(`${entity.constructor.name}, index: ${entity.index}, winner: ${entity.winnerId}`)
+                const entityName = this.entityName(entity);
+                const name = playable.opponentNameService.getWinnerName(entity.winnerId);
+                this.log.push(`${entityName}.winner = ${name}`);
             });
+
+            // Resolve player names
+            playable.playerNameService.idToName = (id) => players[id - 1];
             return playable;
         }
 
         showHistory() {
             for (const item of this.playable.historyList) {
-                console.log(item.title);
+                this.log.push(item.title);
             }
         }
 
-        playerId(name) {
-            // provide a unique id for each player name
-            let i = this.players.indexOf(name);
-            if (i < 0) {
-                i = this.players.length;
-                this.players.push(name);
-            }
-            return i + 1;
-        }
 
         createRequest() {
             switch (this.query) {
@@ -70,8 +98,8 @@ function play() {
                         questions: this.createNewMatchQuestions(),
                         handler: (answers) => {
                             let options = {singles: true, players: []};
-                            options.players.push({id: this.playerId(answers.player1)});
-                            options.players.push({id: this.playerId(answers.player2)});
+                            options.players.push({id: playerId(answers.player1)});
+                            options.players.push({id: playerId(answers.player2)});
                             this.playable = this.createMatch(options);
                             this.query = queries.menu;
                             this.menu = menus.play;
@@ -134,7 +162,7 @@ function play() {
                 }
             }
             catch (e) {
-                console.log(e);
+                this.log.push(e);
                 commandMap.clear();
             }
             if (!rootMenu)
@@ -155,20 +183,26 @@ function play() {
 
         promptLoop(done) {
             const request = this.createRequest();
-            inquirer.prompt(request.questions).then((answers) => {
-                if (request.handler) {
-                    try {
-                        request.handler(answers)
-                    } catch (e) {
-                        console.log(e);
+            inquirer.prompt(request.questions)
+                .then((answers) => {
+                    if (request.handler) {
+                        try {
+                            request.handler(answers);
+                            // Write messages log while handling command
+                            while (this.log.length) {
+                                const message = this.log.splice(0, 1)[0];
+                                this.bottomBar.log.write(message);
+                            }
+                        } catch (e) {
+                            this.bottomBar.log.write(e);
+                        }
                     }
-                }
-                if (!this.done) {
-                    this.promptLoop(done);
-                } else {
-                    done();
-                }
-            });
+                    if (!this.done) {
+                        this.promptLoop(done);
+                    } else {
+                        done();
+                    }
+                });
         }
     }
     return new MatchPlay().play();

@@ -1,4 +1,4 @@
-import {Match} from './match-entity'
+import {Match} from './entity'
 class MatchFactory {
 
     static createNew(options) {

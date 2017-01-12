@@ -3,9 +3,9 @@ import {
     StartSetTiebreak, WinSetTiebreak,
     StartMatchTiebreak, WinMatchTiebreak,
     StartGame, WinGame
-} from './match-command';
+} from './command';
 
-import {Match, MatchSet, SetGame} from './match-entity'
+import {Match, MatchSet, SetGame} from './entity'
 import {Container} from 'aurelia-dependency-injection';
 
 
@@ -13,6 +13,7 @@ import {
     Factory
 } from 'aurelia-dependency-injection';
 import 'aurelia-polyfills';
+import {createFromFactory} from './di-util'
 
 class OnWinnerStrategy {
     static inject() {
@@ -53,7 +54,7 @@ class CommonServingStrategy extends ServingStrategy {
         this.servers = match.servers;
     }
 
-    get areServersKnown() {
+    get knowServingOrder() {
         return this.servers.players.count >= this._opponentPlayerCount / 2;
     }
 
@@ -67,7 +68,7 @@ class CommonServingStrategy extends ServingStrategy {
     }
 
     * serverChoices() {
-        if (!this.areServersKnown) {
+        if (!this.knowServingOrder) {
             for (let opponent of this.opponents) {
                 if (!this._hasOpponentServed(opponent)) {
                     yield* opponent.players;
@@ -78,23 +79,23 @@ class CommonServingStrategy extends ServingStrategy {
 
     removeLastServer() {
         this.servers.players.removeLast();
-        this._updateAllServers()
+        this._updateServingOrder()
     }
 
     newServer(playerId) {
         if (!playerId) {
-            if (!this.areServersKnown) {
+            if (!this.knowServingOrder) {
                 throw new Error('player must be specified');
             }
             this._lastServerId = this._nextServerId;
         }
-        else if (!this.areServersKnown) {
+        else if (!this.knowServingOrder) {
             if (this._hasPlayerServed(playerId)) {
                 throw new Error('player serving out of order')
             }
             this.servers.players.add().id = playerId;
             this._lastServerId = playerId;
-            this._updateAllServers();
+            this._updateServingOrder();
         }
     }
 
@@ -114,21 +115,22 @@ class CommonServingStrategy extends ServingStrategy {
         }
     }
 
-    _updateAllServers() {
-        if (this.areServersKnown) {
+    _updateServingOrder() {
+        // Once the half the players have served, the serving is calculated
+        if (this.knowServingOrder) {
             const playerId = this.servers.players.last.id;
-            const allServers = [...this.servers.players].map((value) => value.id);
+            const servingOrder = [...this.servers.players].map((value) => value.id);
             let opponent = this._opponentOfPlayer(playerId);
-            while (allServers.length < this._opponentPlayerCount) {
+            while (servingOrder.length < this._opponentPlayerCount) {
                 opponent = this._nextOpponent(opponent);
                 for (let player of opponent.players) {
-                    if (allServers.indexOf(player.id) < 0)
-                        allServers.push(player.id);
+                    if (servingOrder.indexOf(player.id) < 0)
+                        servingOrder.push(player.id);
                 }
             }
-            this.servers.allServers = allServers;
+            this.servers.servingOrder = servingOrder;
         } else {
-            this.servers.allServers = undefined;
+            this.servers.servingOrder = undefined;
         }
     }
 
@@ -145,11 +147,11 @@ class CommonServingStrategy extends ServingStrategy {
     }
 
     get _nextServerId() {
-        if (!this.areServersKnown) {
+        if (!this.knowServingOrder) {
             throw new Error('next server not known');
         }
         let next;
-        let players = this.servers.allServers;
+        let players = this.servers.servingOrder;
         let last = this.lastServerId;
         if (!last)
             return players[0];
@@ -197,8 +199,6 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
         this.match.scores = [0, 0];
         this.match.servers.clear();
         this.match.sets.clear();
-
-        // TODO: clear history and undo stack
     }
 
     startWarmup() {
@@ -279,31 +279,19 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
         }
     }
 
-    _createFromFactory(klass, ...rest) {
-        let factory = new Factory(klass);
-        let fn = factory.get(this.container);
-        let result = fn(...rest);
-        return result;
-    }
-
     * commands() {
         if (!this.match.warmingUp && !this.match.started) {
-            yield this.container.get(StartWarmup);
+            yield createFromFactory(this.container, StartWarmup);
         }
         if (!this.match.started) {
             for (let server of this.servingStrategy().serverChoices()) {
-                yield this._createFromFactory(StartPlay, server.id);
-                //     // yield command;
-                //     let factory = new Factory(StartPlay);
-                //     let fn = factory.get(this.container);
-                //     let command = fn(server.id);
-                //     yield command;
-            }
+                yield createFromFactory(this.container, StartPlay, server.id);
+             }
         }
         if (this._canStartSet) {
             yield this.container.get(StartSet);
         } else if (this._canStartMatchTiebreak) {
-            yield this.container.get(StartMatchTiebreak);
+            yield createFromFactory(this.container, StartMatchTiebreak);
         }
     }
 }
@@ -408,25 +396,17 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
         this.matchSet.games.last.finished && this.matchSet.scores[0] === 6 && this.matchSet.scores[1] === 6);
     }
 
-    createFromFactory(id) {
-        let factory = new Factory(StartGame);
-        let fn = factory.get(this.container);
-        let command = fn(id);
-        return command;
-
-    }
-
     * commands() {
         if (this._canStartGame) {
-            if (!this.servingStrategy().areServersKnown) {
+            if (!this.servingStrategy().knowServingOrder) {
                 for (let player of this.servingStrategy().serverChoices()) {
-                    yield this.createFromFactory(player.id);
+                    yield createFromFactory(this.container, StartGame, player.id);
                 }
             } else {
-                yield this.createFromFactory();
+                yield createFromFactory(this.container, StartGame);
             }
         } else if (this._canStartSetTiebreak) {
-            yield this.container.get(StartSetTiebreak);
+            yield createFromFactory(this.container, StartSetTiebreak);
         }
     }
 }
@@ -456,22 +436,15 @@ class CommonGameCommandStrategy extends GameCommandStrategy {
         this.game.winnerId = opponentId;
     }
 
-    _createFromFactory(klass, ...rest) {
-        let factory = new Factory(klass);
-        let fn = factory.get(this.container);
-        let result = fn(...rest);
-        return result;
-    }
-
     * commands() {
         if (this.game && !this.game.winnerId) {
             for (let opponent of this.opponents) {
                 if (this.game.setTiebreak)
-                    yield this._createFromFactory(WinSetTiebreak, opponent.id);
+                    yield createFromFactory(this.container, WinSetTiebreak, opponent.id);
                 else if (this.game.matchTiebreak)
-                    yield this._createFromFactory(WinMatchTiebreak, opponent.id);
+                    yield createFromFactory(this.container, WinMatchTiebreak, opponent.id);
                 else {
-                    yield this._createFromFactory(WinGame, opponent.id);
+                    yield createFromFactory(this.container, WinGame, opponent.id);
                 }
             }
         }

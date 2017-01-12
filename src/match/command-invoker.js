@@ -1,4 +1,4 @@
-import {MatchHistoryList} from './match-history'
+import {MatchHistoryList} from './history'
 import 'aurelia-polyfills';
 
 const _undoStack = new WeakMap();

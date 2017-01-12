@@ -3,7 +3,7 @@
  */
 
 import {expect} from 'chai';
-import {MatchObservable} from '../src/match/match-observable';
+import {MatchObservable} from '../../src/match/observable';
 
 
 const matchObservable = new MatchObservable();

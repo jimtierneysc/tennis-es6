@@ -2,8 +2,9 @@ import {
     StartWarmup, StartPlay, StartSet, StartMatchTiebreak,
     StartGame, StartSetTiebreak, WinMatchTiebreak,
     WinGame, WinSetTiebreak
-} from '../src/match/match-command';
-import {createNewPlayableMatch} from '../src/match/match-playable-factory';
+} from '../../src/match/command';
+import {createPlayableMatch} from '../../src/match/playable-factory';
+import {createNewMatch} from '../../src/match/factory';
 
 class Utils {
     static findCommand(commands, type) {
@@ -111,12 +112,12 @@ class Utils {
     }
 
     static makeMatch() {
-        const players = [{id: 1}, {id: 2}];
+        const players = [{id: 100}, {id: 200}];
         const options = {
             singles: true,
             players: players
         };
-        return createNewPlayableMatch(options);
+        return createPlayableMatch(createNewMatch(options));
 
     }
 }

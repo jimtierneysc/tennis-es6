@@ -1,10 +1,6 @@
-/**
- * Test tennis match classes
- */
-
 import {expect} from 'chai';
-import {playableMatchFactory} from '../src/match/match-playable-factory';
-import {Utils as util} from './MatchCommandUtil'
+import {playableMatchFactory} from '../../src/match/playable-factory';
+import {Utils as util} from './command-util'
 
 
 describe('servingStrategy', () => {
@@ -24,7 +20,7 @@ describe('servingStrategy', () => {
             });
 
             it('should should not be known', () => {
-                expect(servingStrategy.areServersKnown).not.to.be.true;
+                expect(servingStrategy.knowServingOrder).not.to.be.true;
             });
 
             it('should have server choices', () => {
@@ -60,7 +56,7 @@ describe('servingStrategy', () => {
             });
 
             it('should know server', () => {
-                expect(servingStrategy.areServersKnown).to.be.true;
+                expect(servingStrategy.knowServingOrder).to.be.true;
             });
 
             it('should not have more server choices', () => {
@@ -68,7 +64,7 @@ describe('servingStrategy', () => {
             });
 
             it('should have all servers', () => {
-                expect(playableMatch.match.servers.allServers.length).to.be.equal(2);
+                expect(playableMatch.match.servers.servingOrder.length).to.be.equal(2);
             });
 
             it('should have lastServer', () => {
@@ -108,7 +104,7 @@ describe('servingStrategy', () => {
         //     });
         //
         //     it('should not know servers', () => {
-        //         expect(servingStrategy.areServersKnown).to.be.false;
+        //         expect(servingStrategy.knowServingOrder).to.be.false;
         //     });
         //
         //     it('should have more server choices', () => {
@@ -124,7 +120,7 @@ describe('servingStrategy', () => {
         //             servingStrategy.newServer(players[2].id);
         //         });
         //         it('should know servers', () => {
-        //             expect(servingStrategy.areServersKnown).to.be.true;
+        //             expect(servingStrategy.knowServingOrder).to.be.true;
         //         });
         //
         //         it('should not have more server choices', () => {
@@ -132,7 +128,7 @@ describe('servingStrategy', () => {
         //         });
         //
         //         it('should have all servers', () => {
-        //             expect(servingStrategy.allServers.length).to.be.equal(4);
+        //             expect(servingStrategy.servingOrder.length).to.be.equal(4);
         //         });
         //
         //         it('should have lastServer', () => {

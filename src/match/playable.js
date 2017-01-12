@@ -1,8 +1,9 @@
-import {UndoOperation, StartOver} from './match-command'
-import {Match} from './match-entity';
-import {MatchHistoryList} from './match-history';
-import {MatchCommandInvoker} from './match-command-invoker'
-import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './match-strategy'
+import {UndoOperation, StartOver} from './command'
+import {Match} from './entity';
+import {MatchHistoryList} from './history';
+import {MatchCommandInvoker} from './command-invoker'
+import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './strategy'
+import {PlayerNameService, OpponentNameService} from './name-service'
 
 class PlayableMatch {
 
@@ -36,6 +37,14 @@ class PlayableMatch {
 
     get historyList() {
         return this.container.get(MatchHistoryList);
+    }
+
+    get playerNameService() {
+        return this.container.get(PlayerNameService);
+    }
+
+    get opponentNameService() {
+        return this.container.get(OpponentNameService);
     }
 
     *otherCommands() {

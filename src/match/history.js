@@ -1,6 +1,6 @@
 // import {MatchStrategy} from './match-commandStrategy'
 
-import {MatchComponent, MatchComponentList} from './match-component';
+import {MatchComponent, MatchComponentList} from './component';
 
 // TODO: create with DI
 class MatchHistoryList extends MatchComponentList {

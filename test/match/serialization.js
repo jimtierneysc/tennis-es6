@@ -1,8 +1,7 @@
 import {expect} from 'chai';
-import {playableMatchFactory} from '../src/match/match-playable-factory';
-import {Match} from '../src/match/match-entity';
-import {Utils as util} from './MatchCommandUtil';
-// import * as _ from 'lodash';
+import {playableMatchFactory} from '../../src/match/playable-factory';
+import {Match} from '../../src/match/entity';
+import {Utils as util} from './command-util';
 
 
 class compare {

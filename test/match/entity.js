@@ -3,7 +3,7 @@
  */
 
 import {expect} from 'chai';
-import {Match} from '../src/match/match-entity';
+import {Match} from '../../src/match/entity';
 
 function createMatch() {
   return new Match(undefined, {players: [{id: 1}, {id: 2}]})

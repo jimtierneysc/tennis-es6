@@ -3,13 +3,13 @@
  */
 
 import {expect} from 'chai';
-import {playableMatchFactory} from '../src/match/match-playable-factory';
+import {playableMatchFactory} from '../../src/match/playable-factory';
 import {
     StartWarmup, StartPlay, StartOver, StartSet, StartMatchTiebreak,
     StartGame, StartSetTiebreak, WinMatchTiebreak,
     WinGame, WinSetTiebreak, UndoOperation
-} from '../src/match/match-command';
-import {Utils as util} from './MatchCommandUtil';
+} from '../../src/match/command';
+import {Utils as util} from './command-util';
 
 // describe('makeMatch', () => {
 //     it('should have makeMatch', () => {
@@ -181,7 +181,7 @@ describe('startGame-first-set', () => {
 
     describe('start-game-2', () => {
         beforeEach(() => {
-            playableMatch.commandInvoker.invoke(commands[0]); // start play
+            playableMatch.commandInvoker.invoke(commands[0]); // start game
         });
 
         it('should start game 2', () => {
@@ -216,8 +216,12 @@ describe('startGame-first-set', () => {
 });
 
 describe('win-set', () => {
-    const playableMatch = util.makeMatch();
-    util.startPlay(playableMatch);
+
+    let playableMatch;
+    before(()=> {
+        playableMatch = util.makeMatch();
+        util.startPlay(playableMatch);
+    });
 
     for (let i = 1; i <= 6; i++) {
         describe(`game-${i}`, () => {

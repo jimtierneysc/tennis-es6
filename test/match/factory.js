@@ -3,17 +3,21 @@
  */
 
 import {expect} from 'chai';
-import {createNewPlayableMatch, createPlayableMatchFromValue} from '../src/match/match-playable-factory';
-import {Utils as util} from './MatchCommandUtil';
+import {createPlayableMatch} from '../../src/match/playable-factory';
+import {createNewMatch, createMatchFromValue} from '../../src/match/factory';
+import {Utils as util} from './command-util';
 
 
-describe('factory', () => {
+describe('factories', () => {
 
-    it('should have makeMatch', () => {
-        expect(createNewPlayableMatch).to.exist
+    it('should have new playable factory', () => {
+        expect(createPlayableMatch).to.exist
     });
-    it('should have makeMatch', () => {
-        expect(createPlayableMatchFromValue).to.exist
+    it('should have new match factory', () => {
+        expect(createNewMatch).to.exist
+    });
+    it('should have value match factory', () => {
+        expect(createMatchFromValue).to.exist
     });
 });
 

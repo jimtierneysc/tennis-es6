@@ -1,5 +1,5 @@
-import {MatchObservable} from './match-observable';
-import {MatchComponent, MatchComponentList} from './match-component';
+import {MatchObservable} from './observable';
+import {MatchComponent, MatchComponentList} from './component';
 
 class SetGame extends MatchComponent {
 
@@ -244,6 +244,19 @@ class Opponents extends MatchComponent {
     * players() {
         yield * this.first.players;
         yield * this.second.players;
+    }
+
+    findPlayerRef(id) {
+        return [...this.players()].reduce((acc, value)=>value.id === id ? acc : value);
+    }
+
+    findOpponent(id) {
+        switch(id) {
+            case 1:
+                return this.first;
+            case 2:
+                return this.second;
+        }
     }
 
 }
