@@ -75,7 +75,7 @@ class StartGame {
         this.title = `start game[${strategy().matchSet.games.count}]`;
         if (server) {
             let name = nameService.getPlayerName(server);
-            this.title = `${title}, server: ${name}`
+            this.title = `${name}, server: ${name}`
         }
         this.execute = ()=>strategy().startGame(server);
         this.undo = ()=>strategy().undoStartGame(server);

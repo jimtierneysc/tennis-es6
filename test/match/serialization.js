@@ -13,7 +13,6 @@ class compare {
     static equal(value1, value2) {
         try {
             compare.opponents(value1.opponents, value2.opponents);
-            // compare.players(value1.players, value2.players);
             compare.servers(value1.servers, value2.servers);
             compare.sets(value1.sets, value2.sets);
             compare.winner(value1, value2);
@@ -48,19 +47,6 @@ class compare {
     static opponent(value1, value2) {
         compare.iterate(value1.players, value2.players, (value1, value2) => compare.playerRef(value1, value2))
     }
-
-    // static players(value1, value2) {
-    //     if (value1.list.count != value2.list.count)
-    //         compare.error('players');
-    //     if (value1.lastId != value2.lastId)
-    //         compare.error('lastId');
-    //     compare.iterate(value1.list, value2.list, (value1, value2) => compare.player(value1, value2))
-    // }
-    //
-    // static player(value1, value2) {
-    //     if (value1.id != value2.id)
-    //         compare.error('server');
-    // }
 
     static playerRef(value1, value2) {
         if (value1.id != value2.id)
@@ -126,78 +112,80 @@ function matchFromValue(playableMatch) {
 }
 
 describe('serialize', () => {
+    util.testParams.forEach((params) => {
+        describe(params.title, () => {
 
-    let playableMatch;
+            let playableMatch;
 
-    beforeEach(() => {
-        playableMatch = util.makeMatch();
+            beforeEach(() => {
+                playableMatch = util.makeMatch(params.options);
+            });
+
+            describe('empty match', () => {
+                let match;
+                beforeEach(() => {
+                    match = matchFromValue(playableMatch);
+                });
+
+                it('should have same value', () => {
+                    expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+            });
+
+            describe('start match', () => {
+                let match;
+                beforeEach(() => {
+                    util.startPlay(playableMatch);
+                    match = matchFromValue(playableMatch);
+                });
+
+                it('should have same value', () => {
+                    expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+            });
+
+            describe('win game', () => {
+                let match;
+                beforeEach(() => {
+                    util.startPlay(playableMatch);
+                    util.winGame(playableMatch, 1);
+                    match = matchFromValue(playableMatch);
+                });
+
+                it('should have same value', () => {
+                    expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+            });
+
+            describe('win set', () => {
+                let match;
+                beforeEach(() => {
+                    util.startPlay(playableMatch);
+                    util.winSet(playableMatch, 1);
+                    match = matchFromValue(playableMatch);
+                });
+
+                it('should have same value', () => {
+                    expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+            });
+
+            describe('win match', () => {
+                let match;
+                beforeEach(() => {
+                    util.startPlay(playableMatch);
+                    util.winSet(playableMatch, 1);
+                    util.winSet(playableMatch, 1);
+                    match = matchFromValue(playableMatch);
+                    // match.sets.last.scores[0] = 7;
+                });
+
+                it('should have same value', () => {
+                    expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+            });
+        });
     });
-
-    describe('empty match', () => {
-        let match;
-        beforeEach(() => {
-            match = matchFromValue(playableMatch);
-        });
-
-        it('should have same value', () => {
-            expect(compare.equal(match, playableMatch.match)).to.be.ok;
-        });
-    });
-
-    describe('start match', () => {
-        let match;
-        beforeEach(() => {
-            util.startPlay(playableMatch);
-            match = matchFromValue(playableMatch);
-        });
-
-        it('should have same value', () => {
-            expect(compare.equal(match, playableMatch.match)).to.be.ok;
-        });
-    });
-
-    describe('win game', () => {
-        let match;
-        beforeEach(() => {
-            util.startPlay(playableMatch);
-            util.winGame(playableMatch, 1);
-            match = matchFromValue(playableMatch);
-        });
-
-        it('should have same value', () => {
-            expect(compare.equal(match, playableMatch.match)).to.be.ok;
-        });
-    });
-
-    describe('win set', () => {
-        let match;
-        beforeEach(() => {
-            util.startPlay(playableMatch);
-            util.winSet(playableMatch, 1);
-            match = matchFromValue(playableMatch);
-        });
-
-        it('should have same value', () => {
-            expect(compare.equal(match, playableMatch.match)).to.be.ok;
-        });
-    });
-
-    describe('win match', () => {
-        let match;
-        beforeEach(() => {
-            util.startPlay(playableMatch);
-            util.winSet(playableMatch, 1);
-            util.winSet(playableMatch, 1);
-            match = matchFromValue(playableMatch);
-            // match.sets.last.scores[0] = 7;
-        });
-
-        it('should have same value', () => {
-            expect(compare.equal(match, playableMatch.match)).to.be.ok;
-        });
-    });
-
-
 });
 
 

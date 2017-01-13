@@ -61,10 +61,6 @@ describe('Match', () => {
             expect(match.sets).to.exist;
         });
 
-        // it('should have players', () => {
-        //     expect(match.players).to.exist;
-        // });
-
     });
 
     describe('removeLast', () => {
@@ -141,48 +137,6 @@ describe('Match', () => {
             });
         }
     });
-
-    // describe('Player.name', () => {
-    //     let player;
-    //     beforeEach(() => {
-    //         const match = createMatch()
-    //         player = match.players.list.add();
-    //     });
-    //
-    //     it('is blank', () => {
-    //         expect(player.name).to.be.equal('');
-    //     });
-    //
-    //     it('can be set', () => {
-    //         player.name = 'test';
-    //         expect(player.name).to.be.equal('test');
-    //     });
-    //
-    //     it('can be cleared', () => {
-    //         player.name = undefined;
-    //         expect(player.name).to.be.equal('');
-    //     });
-    //
-    // });
-
-    // describe('Player.id', () => {
-    //     let players;
-    //     beforeEach(() => {
-    //         players = new Match().players;
-    //     });
-    //
-    //     it('has id 1', () => {
-    //         players.list.add();
-    //         expect(players.list.last.id).to.be.equal(1);
-    //     });
-    //
-    //     it('has id 2', () => {
-    //         players.list.add();
-    //         players.list.add();
-    //         expect(players.list.last.id).to.be.equal(2);
-    //     });
-    //
-    // });
 
     describe('Server.id', () => {
         let server;

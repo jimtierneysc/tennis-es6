@@ -111,15 +111,45 @@ class Utils {
         return result;
     }
 
-    static makeMatch() {
-        const players = [{id: 100}, {id: 200}];
-        const options = {
+    static get singlesOptions() {
+        return {
+            title: 'singles',
             singles: true,
-            players: players
-        };
+            players: [{id: 100}, {id: 200}]
+        }
+    };
+
+    static get doublesOptions() {
+        return {
+            title: 'doubles',
+            doubles: true,
+            players: [{id: 100}, {id: 200}, {id: 300}, {id: 400}]
+        }
+    }
+
+    static makeMatch(options) {
+        options = options || {singles: true};
+        if (!options.players)
+            if (options.doubles)
+                options.players = Utils.doublesOptions.players;
+            else
+                options.players = Utils.singlesOptions.players;
+
         return createPlayableMatch(createNewMatch(options));
 
     }
+
+    static testParams = [
+        {
+            title: 'singles',
+            options: Utils.singlesOptions,
+        },
+        {
+            title: 'doubles',
+            options: Utils.doublesOptions,
+        }
+
+    ];
 }
 
 export {Utils};

@@ -50,36 +50,13 @@ describe('playableMatch', () => {
 
 });
 
-// describe('players', () => {
-//
-//     describe('singles', () => {
-//         let playableMatch;
-//
-//         beforeEach(() => {
-//             playableMatch = makeMatch();
-//         });
-//
-//         it('should have two players', () => {
-//             expect(playableMatch.match.players.list.count).to.be.equal(2);
-//         });
-//     });
-//
-//     describe('doubles', () => {
-//         let playableMatch;
-//
-//         beforeEach(() => {
-//             playableMatch = makeMatch();
-//         });
-//     });
-// });
-
 describe('opponents', () => {
 
     describe('singles', () => {
         let playableMatch;
 
         beforeEach(() => {
-            playableMatch = util.makeMatch();
+            playableMatch = util.makeMatch(util.singlesOptions);
         });
 
         it('should have two opponents', () => {
@@ -96,26 +73,26 @@ describe('opponents', () => {
         });
     });
 
-    // describe('doubles', () => {
-    //     let playableMatch;
-    //
-    //     beforeEach(() => {
-    //         playableMatch = playableMatchFactory.makeMatch(MatchCharacteristics.TwoSetDoubles);
-    //     });
-    //
-    //     it('should have two opponents', () => {
-    //         expect([...playableMatch.match.opponents].length).to.be.equal(2);
-    //     });
-    //
-    //     describe('players per opponent', () => {
-    //         it('should have two players', () => {
-    //             expect([...playableMatch.match.opponents.first.players].length).to.be.equal(2);
-    //         });
-    //         it('should have two players', () => {
-    //             expect([...playableMatch.match.opponents.second.players].length).to.be.equal(2);
-    //         });
-    //     });
-    // });
+    describe('doubles', () => {
+        let playableMatch;
+
+        beforeEach(() => {
+            playableMatch = util.makeMatch(util.doublesOptions);
+        });
+
+        it('should have two opponents', () => {
+            expect([...playableMatch.match.opponents].length).to.be.equal(2);
+        });
+
+        describe('players per opponent', () => {
+            it('should have two players', () => {
+                expect([...playableMatch.match.opponents.first.players].length).to.be.equal(2);
+            });
+            it('should have two players', () => {
+                expect([...playableMatch.match.opponents.second.players].length).to.be.equal(2);
+            });
+        });
+    });
 });
 
 
