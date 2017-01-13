@@ -1,3 +1,4 @@
+'use strict';
 import {MatchHistoryList} from './history'
 import 'aurelia-polyfills';
 

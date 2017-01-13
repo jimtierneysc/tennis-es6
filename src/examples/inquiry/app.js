@@ -7,6 +7,7 @@ import {Match, MatchSet, SetGame} from '../../match/entity'
 
 function play() {
 
+    // list of player names
     let players = [];
 
     function playerId(name) {
@@ -19,14 +20,11 @@ function play() {
         return i + 1;
     }
 
-    const queries = {
-        newMatch: 1,
-        menu: 2
-    };
-
-    const menus = {
-        play: 1,
-        root: 2
+    const modes = {
+        playMenu: 1,
+        mainMenu: 2,
+        matchKind: 3,
+        playerNames: 4
     };
 
     class MatchPlay {
@@ -34,14 +32,15 @@ function play() {
         constructor() {
             this.playable = undefined;
             this.commandMap = new Map();
-            this.query = queries.menu;
-            this.menu = menus.root;
+            this.mode = modes.mainMenu;
             this.done = false;
-            this.log = [];
+            this.messages = [];
             this.bottomBar = new inquirer.ui.BottomBar();
+            this.createMatchOptions = {};
         }
 
-        entityName(entity) {
+        // Translate class name to a title
+        entityTitle(entity) {
             let name;
             if (entity instanceof SetGame)
                 name = `game[${entity.index}]`;
@@ -53,66 +52,97 @@ function play() {
         }
 
         createMatch(options) {
-            options = options || {
-                    singles: true,
-                    players: [{id: 99}, {id: 333}]
-                };
-
+            // create match entity
             const match = createNewMatch(options);
-            // create match
+            // create services to play match
             const playable = createPlayableMatch(match);
 
+            this.subscribe(playable);
+            this.resolvePlayerNames(playable);
+
+            return playable;
+        }
+
+        subscribe(playable) {
             // event handlers
             const observable = playable.match.observable;
             observable.subscribeScores((entity) => {
-                const entityName = this.entityName(entity);
-                this.log.push(`${entityName}.score = ${JSON.stringify(entity.scores)}`);
+                const entityName = this.entityTitle(entity);
+                this.messages.push(`${entityName}.score = ${JSON.stringify(entity.scores)}`);
             });
             observable.subscribeWinner((entity) => {
-                const entityName = this.entityName(entity);
+                const entityName = this.entityTitle(entity);
                 const name = playable.opponentNameService.getWinnerName(entity.winnerId);
-                this.log.push(`${entityName}.winner = ${name}`);
+                this.messages.push(`${entityName}.winner = ${name}`);
             });
+        }
 
-            // Resolve player names
-            playable.playerNameService.idToName = (id) => players[id - 1];
-            return playable;
+        resolvePlayerNames(playable) {
+            // Provide our player names
+            playable.playerNameService.idToName = (id) => {
+                return players[id - 1];
+            }
         }
 
         showHistory() {
             for (const item of this.playable.historyList) {
-                this.log.push(item.title);
+                this.messages.push(item.title);
             }
         }
 
-
         createRequest() {
-            switch (this.query) {
-                case queries.menu:
+            switch (this.mode) {
+                case modes.mainMenu:
+                case modes.playMenu:
                     return {
-                        questions: this.createMenuQuestions(),
+                        questions: this.menuQuestions(),
                         handler: (answers) => this.commandMap.get(answers.command)()
                     };
-                case queries.newMatch:
+                case modes.matchKind:
                     return {
-                        questions: this.createNewMatchQuestions(),
+                        questions: this.matchKindQuestions(),
                         handler: (answers) => {
-                            let options = {singles: true, players: []};
+                            this.createMatchOptions = {};
+                            if (answers.kind !== 'singles') {
+                                this.createMatchOptions.doubles = true;
+                            }
+                            this.mode = modes.playerNames;
+                        }
+                    };
+                case modes.playerNames:
+                    return {
+                        questions: this.playerNamesQuestions(),
+                        handler: (answers) => {
+                            let options = this.createMatchOptions;
+                            options.players = [];
                             options.players.push({id: playerId(answers.player1)});
                             options.players.push({id: playerId(answers.player2)});
+                            if (options.doubles) {
+                                options.players.push({id: playerId(answers.player3)});
+                                options.players.push({id: playerId(answers.player4)});
+                            }
                             this.playable = this.createMatch(options);
-                            this.query = queries.menu;
-                            this.menu = menus.play;
+                            this.mode = modes.playMenu;
                         }
                     };
                 default:
-                    throw new Error('unexpected');
+                    throw new Error(`unexpected: ${this.mode}`);
             }
         }
 
-        createNewMatchQuestions() {
+        matchKindQuestions() {
+            const result = {
+                type: 'rawlist',
+                name: 'kind',
+                message: 'What kind of match?',
+                choices: ['singles', 'doubles']
+            };
+            return result;
+        }
+
+        playerNamesQuestions() {
             const result = [];
-            const playerCount = 2;
+            const playerCount = this.createMatchOptions.doubles ? 4 : 2;
             for (let i = 1; i <= playerCount; i++) {
                 result.push({
                     type: 'input',
@@ -131,7 +161,7 @@ function play() {
             return result;
         }
 
-        createMenuQuestions() {
+        menuQuestions() {
             const result = {
                 type: 'rawlist',
                 name: 'command',
@@ -142,74 +172,70 @@ function play() {
             const commandMap = this.commandMap;
             try {
                 commandMap.clear();
-                switch (this.menu) {
-                    case menus.root:
+                switch (this.mode) {
+                    case modes.mainMenu:
                         if (this.playable) {
-                            commandMap.set('play', () => this.menu = menus.play);
+                            commandMap.set('play', () => this.mode = modes.play);
                             commandMap.set('history', () => this.showHistory());
                         }
-                        commandMap.set('new', () => this.query = queries.newMatch);
+                        commandMap.set('new', () => this.mode = modes.matchKind);
                         commandMap.set('quit', () => this.done = true);
                         rootMenu = true;
                         break;
-                    case menus.play:
+                    case modes.playMenu:
                         for (let c of this.playable.allCommands()) {
                             commandMap.set(c.title, () => this.playable.commandInvoker.invoke(c));
                         }
                         break;
                     default:
-                        throw new Error('unexpected');
+                        throw new Error(`unexpected ${this.mode}`);
                 }
             }
             catch (e) {
-                this.log.push(e);
+                this.messages.push(e);
                 commandMap.clear();
             }
             if (!rootMenu)
-                commandMap.set('menu', () => this.menu = menus.root);
+                commandMap.set('menu', () => this.mode = modes.mainMenu);
 
             [...commandMap.keys()].forEach((value) => result.choices.push(value));
 
             return result;
+        }
 
+        promptLoop(resolve) {
+            const request = this.createRequest();
+            inquirer.prompt(request.questions).then((answers) => {
+                try {
+                    request.handler(answers);
+                    // Write messages that were posted while handling request
+                    while (this.messages.length) {
+                        const message = this.messages.splice(0, 1)[0];
+                        this.bottomBar.log.write(message);
+                    }
+                } catch (e) {
+                    this.bottomBar.log.write(e);
+                }
+                if (!this.done) {
+                    this.promptLoop(resolve);
+                } else {
+                    resolve('done');
+                }
+            });
         }
 
         play() {
-            const promise = new Promise((resolve, reject) => {
-                this.promptLoop(() => resolve('done'));
-            });
+            const promise = new Promise((resolve) => this.promptLoop(resolve));
             return promise;
         }
 
-        promptLoop(done) {
-            const request = this.createRequest();
-            inquirer.prompt(request.questions)
-                .then((answers) => {
-                    if (request.handler) {
-                        try {
-                            request.handler(answers);
-                            // Write messages log while handling command
-                            while (this.log.length) {
-                                const message = this.log.splice(0, 1)[0];
-                                this.bottomBar.log.write(message);
-                            }
-                        } catch (e) {
-                            this.bottomBar.log.write(e);
-                        }
-                    }
-                    if (!this.done) {
-                        this.promptLoop(done);
-                    } else {
-                        done();
-                    }
-                });
-        }
     }
     return new MatchPlay().play();
 
 }
 
-play().then((value) => {
-    console.log(value);
-});
+play().then(
+    (value) => console.log(value),
+    (error) => console.log(error)
+);
 

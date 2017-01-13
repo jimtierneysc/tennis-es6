@@ -1,5 +1,4 @@
-// import {MatchStrategy} from './match-commandStrategy'
-
+'use strict';
 import {MatchComponent, MatchComponentList} from './component';
 
 // TODO: create with DI

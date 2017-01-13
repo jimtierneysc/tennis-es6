@@ -1,4 +1,4 @@
-
+'use strict';
 import {Match} from './entity'
 import {createFromFactory} from './di-util'
 import {PlayerNameService, OpponentNameService} from './name-service'
@@ -12,7 +12,7 @@ import {
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchHistoryList} from './history'
 import {
-    Container, Factory
+    Container
 } from 'aurelia-dependency-injection'
 import 'aurelia-polyfills'
 

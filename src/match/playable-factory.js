@@ -1,4 +1,4 @@
-// import {Match} from './match-entity'
+'use strict';
 import {PlayableMatch} from './playable'
 import {Container} from 'aurelia-dependency-injection';
 import {Match} from './entity';

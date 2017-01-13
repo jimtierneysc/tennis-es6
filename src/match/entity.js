@@ -1,3 +1,4 @@
+'use strict';
 import {MatchObservable} from './observable';
 import {MatchComponent, MatchComponentList} from './component';
 
@@ -247,7 +248,7 @@ class Opponents extends MatchComponent {
     }
 
     findPlayerRef(id) {
-        return [...this.players()].reduce((acc, value)=>value.id === id ? acc : value);
+        return [...this.players()].reduce((acc, value)=>value.id === id ? value : acc);
     }
 
     findOpponent(id) {

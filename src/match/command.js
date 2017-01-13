@@ -1,4 +1,5 @@
 // import {MatchStrategy} from './match-commandStrategy'
+'use strict';
 
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy} from './strategy'
@@ -75,7 +76,7 @@ class StartGame {
         this.title = `start game[${strategy().matchSet.games.count}]`;
         if (server) {
             let name = nameService.getPlayerName(server);
-            this.title = `${name}, server: ${name}`
+            this.title = `${this.title}, server: ${name}`
         }
         this.execute = ()=>strategy().startGame(server);
         this.undo = ()=>strategy().undoStartGame(server);
@@ -121,7 +122,8 @@ class UndoOperation {
         return [MatchCommandInvoker];
     }
     constructor(invoker) {
-        this.title = `undo ${invoker.undoableCommand.title}`;
+        const title = invoker.undoableCommand.title;
+        this.title = `undo ${title}`;
         this.execute = ()=> invoker.undo(this);
     }
 }

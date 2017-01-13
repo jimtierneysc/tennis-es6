@@ -1,3 +1,4 @@
+'use strict';
 import {
     StartWarmup, StartPlay, StartSet,
     StartSetTiebreak, WinSetTiebreak,
@@ -7,11 +8,6 @@ import {
 
 import {Match, MatchSet, SetGame} from './entity'
 import {Container} from 'aurelia-dependency-injection';
-
-
-import {
-    Factory
-} from 'aurelia-dependency-injection';
 import 'aurelia-polyfills';
 import {createFromFactory} from './di-util'
 

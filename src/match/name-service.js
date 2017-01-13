@@ -1,3 +1,4 @@
+'use strict';
 import 'aurelia-polyfills';
 import {Match} from './entity'
 
@@ -48,7 +49,7 @@ class OpponentNameService {
         if (opponent) {
             let players = [...opponent.players];
             let names = players.map((player) => this.playerNameService.getPlayerName(player.id));
-            return names.join(', ');
+            return names.join(' and ');
         }
     }
 }

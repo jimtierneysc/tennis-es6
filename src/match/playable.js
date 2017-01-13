@@ -1,9 +1,11 @@
+'use strict';
 import {UndoOperation, StartOver} from './command'
 import {Match} from './entity';
 import {MatchHistoryList} from './history';
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './strategy'
 import {PlayerNameService, OpponentNameService} from './name-service'
+import {createFromFactory} from './di-util'
 
 class PlayableMatch {
 
@@ -49,11 +51,11 @@ class PlayableMatch {
 
     *otherCommands() {
         if (this.commandInvoker.canUndo) {
-            yield this.container.get(UndoOperation);
+            yield createFromFactory(this.container, UndoOperation);
         }
 
         if (this.matchCommandStrategy.canStartOver) {
-            yield this.container.get(StartOver);
+            yield createFromFactory(this.container, StartOver);
         }
     }
 

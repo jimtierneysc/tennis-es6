@@ -1,3 +1,4 @@
+'use strict';
 import * as _ from 'lodash'
 
 // Containers for hidden and read-only properties
