@@ -10,6 +10,7 @@ import {
     WinGame, WinSetTiebreak, UndoOperation
 } from '../../src/match/command';
 import {Utils as util} from './command-util';
+import {MatchOptions} from '../../src/match/options'
 
 
 const testParams = util.testParams;
@@ -113,7 +114,7 @@ describe('startGame-first-set', () => {
             });
 
             it('should have commands', () => {
-                expect(commands.length).to.equal(params.options.doubles ? 2 : 1);
+                expect(commands.length).to.equal(MatchOptions.doublesKind(params.options) ? 2 : 1);
             });
 
             describe('start-game-2', () => {
@@ -499,7 +500,7 @@ describe('undo', () => {
                     });
                     it('should have start play command', () => {
                         let commands = util.filterCommands([...playableMatch.matchCommands()], StartPlay);
-                        expect(commands.length).to.be.equal(params.options.doubles ? 4 : 2);
+                        expect(commands.length).to.be.equal(MatchOptions.playerCount(params.options));
                     });
                 });
 
@@ -531,7 +532,7 @@ describe('undo', () => {
 
                     it('should have start game command', () => {
                         let commands = util.filterCommands([...playableMatch.matchSetCommands()], StartGame);
-                        expect(commands.length).to.be.equal(params.options.doubles ? 2 : 1);
+                        expect(commands.length).to.be.equal(MatchOptions.playerCount(params.options)/2);
                     });
                 });
             });
@@ -841,7 +842,7 @@ describe('undo', () => {
 
             describe('new-match', () => {
                 it('should have commands', () => {
-                    if (params.options.doubles)
+                    if (MatchOptions.doublesKind(params.options))
                         expect(util.hasCommands(playableMatch, [StartPlay, StartPlay, StartPlay, StartPlay, StartWarmup])).to.be.true;
                     else
                         expect(util.hasCommands(playableMatch, [StartPlay, StartPlay, StartWarmup])).to.be.true;
@@ -862,7 +863,7 @@ describe('undo', () => {
                         });
 
                         it('should have commands', () => {
-                            if (params.options.doubles)
+                            if (MatchOptions.doublesKind(params.options))
                                 expect(util.hasCommands(playableMatch, [StartGame, StartGame, StartOver, UndoOperation])).to.be.true;
                             else
                                 expect(util.hasCommands(playableMatch, [StartGame, StartOver, UndoOperation])).to.be.true;

@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 import {playableMatchFactory} from '../../src/match/playable-factory';
+import {MatchOptions} from '../../src/match/options';
 import {Utils as util} from './command-util'
 
 let testParams = util.testParams;
@@ -25,7 +26,7 @@ describe('servingStrategy', () => {
                 });
 
                 it('should have server choices', () => {
-                    expect([...servingStrategy.serverChoices()].length).to.be.equal(params.options.doubles ? 4 : 2);
+                    expect([...servingStrategy.serverChoices()].length).to.be.equal(MatchOptions.playerCount(params.options));
                 });
 
             });

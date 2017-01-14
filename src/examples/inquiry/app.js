@@ -9,6 +9,7 @@ import {MatchHistory} from '../../match/history'
 import {MatchHistoryList} from '../../match/history-list'
 import {Match, MatchSet, SetGame} from '../../match/entity'
 import {createFromFactory} from '../../match/di-util'
+import {MatchOptions} from '../../match/options'
 
 
 function play() {
@@ -59,7 +60,7 @@ function play() {
             // create match entity
             const match = createNewMatch(options);
             // create services to play match
-            const playable = createPlayableMatch(match, this.matchRegister, this.matchRun);
+            const playable = createPlayableMatch(match, this.matchRegister);
 
             this.subscribe(playable);
 
@@ -81,10 +82,6 @@ function play() {
 
             // Decorate commands with title
             container.registerInstance(CommandDecorator, createFromFactory(container, CommandTitleDecorator));
-        }
-
-        matchRun(playable) {
-            // Nothing to do
         }
 
         subscribe(playable) {
@@ -121,8 +118,8 @@ function play() {
                         questions: this.matchKindQuestions(),
                         handler: (answers) => {
                             this.matchOptions = {};
-                            if (['singles', 'doubles'].includes(answers.kind)) {
-                                this.matchOptions[answers.kind] = true;
+                            if (MatchOptions.kinds.includes(answers.kind)) {
+                                this.matchOptions.kind = answers.kind;
                                 this.mode = modes.playerNames;
                             } else {
                                 this.mode = modes.mainMenu;
@@ -153,14 +150,14 @@ function play() {
                 type: 'rawlist',
                 name: 'kind',
                 message: 'What kind of match?',
-                choices: ['singles', 'doubles', 'never mind']
+                choices: [...MatchOptions.kinds, 'never mind']
             };
             return result;
         }
 
         get playerNameFields() {
             const result = [];
-            const count = this.matchOptions.doubles ? 4 : 2;
+            const count = MatchOptions.playerCount(this.matchOptions);
             for (let i = 1; i <= count; i++) {
                 result.push(`p${i}`);
             }

@@ -3,6 +3,7 @@ import {
     StartGame, StartSetTiebreak, WinMatchTiebreak,
     WinGame, WinSetTiebreak
 } from '../../src/match/command';
+import {MatchOptions} from '../../src/match/options'
 import {createPlayableMatch} from '../../src/match/playable-factory';
 import {createNewMatch} from '../../src/match/factory';
 
@@ -111,32 +112,44 @@ class Utils {
         return result;
     }
 
-    static get singlesOptions() {
-        return {
-            title: 'singles',
-            singles: true,
-            players: [{id: 100}, {id: 200}]
+    static addPlayers(options) {
+        if (!options.players) {
+            options.players = [];
+            for(let i = 1; i<= MatchOptions.playerCount(options); i++) {
+                options.players.push({id: i*100});
+            }
         }
+        return options;
+    }
+
+    static get singlesOptions() {
+        return Utils.addPlayers({
+            title: 'singles',
+            kind: MatchOptions.kind.singles,
+            scoring: MatchOptions.scoring.twoSetsTenPoint
+        });
     };
 
     static get doublesOptions() {
-        return {
+        return Utils.addPlayers({
             title: 'doubles',
-            doubles: true,
-            players: [{id: 100}, {id: 200}, {id: 300}, {id: 400}]
-        }
+            kind: MatchOptions.kind.doubles,
+            scoring: MatchOptions.scoring.twoSetsTenPoint
+        });
     }
 
+    static get singlesProSetOptions() {
+        return Utils.addPlayers({
+            title: 'singles-pro-set',
+            kind: MatchOptions.kind.singles,
+            scoring: MatchOptions.scoring.eightGameProSet
+        });
+    };
+
     static makeMatch(options) {
-        options = options || {singles: true};
-        if (!options.players)
-            if (options.doubles)
-                options.players = Utils.doublesOptions.players;
-            else
-                options.players = Utils.singlesOptions.players;
-
+        options = options || {kind: MatchOptions.kind.singles};
+        Utils.addPlayers(options);
         return createPlayableMatch(createNewMatch(options));
-
     }
 
     static testParams = [
@@ -147,6 +160,10 @@ class Utils {
         {
             title: 'doubles',
             options: Utils.doublesOptions,
+        },
+        {
+            title: 'singles-pro-set',
+            options: Utils.singlesProSetOptions,
         }
 
     ];

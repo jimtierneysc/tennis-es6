@@ -1,6 +1,7 @@
 'use strict';
 import {MatchObservable} from './observable';
 import {MatchComponent, MatchComponentList} from './component';
+import {MatchOptions} from './options'
 
 class SetGame extends MatchComponent {
 
@@ -106,54 +107,6 @@ class MatchSets extends MatchComponentList {
         return new MatchSet(this, value);
     }
 }
-
-// class Player extends MatchComponent {
-//
-//     constructor(parent, value) {
-//         super(parent.owner, parent, value || {id: parent.parent._nextId()});
-//     }
-//
-//     get name() {
-//         return this.value.name || '';
-//     }
-//
-//     set name(value) {
-//         this.value.name = value;
-//     }
-//
-//     get id() {
-//         return this.value.id;
-//     }
-// }
-
-// class PlayerList extends MatchComponentList {
-//     constructor(parent, value) {
-//         super(parent.owner, parent, value);
-//     }
-//
-//     factory(value) {
-//         return new Player(this, value);
-//     }
-//
-// }
-//
-// const _list = new WeakMap();
-// class Players extends MatchComponent {
-//     constructor(owner, value) {
-//         super(owner, undefined, value || {lastId: 0});
-//         _list.set(this, new PlayerList(this, this.initArray('list')));
-//     }
-//
-//     get list() {
-//         return _list.get(this);
-//     }
-//
-//     _nextId() {
-//         let result = this.value.idCounter || 1;
-//         this.value.idCounter = result + 1;
-//         return result;
-//     }
-// }
 
 class PlayerRef extends MatchComponent {
 
@@ -284,16 +237,7 @@ class Match extends MatchComponent {
 
     addOpponents() {
         const players = this.options.players || [];
-        let playerCount = 0;
-        if (this.options.doubles) {
-            playerCount = 4;
-        }
-        else if (this.options.singles) {
-            playerCount = 2;
-        }
-        else {
-            playerCount = 2;
-        }
+        const playerCount = MatchOptions.playerCount(this.options);
 
         if (players.length < playerCount) {
             throw new Error(`Not enough players.  ${playerCount} are required. ${players.length} are provided.`)

@@ -1,7 +1,6 @@
 'use strict';
 import {Match} from './entity'
 import {createFromFactory} from './di-util'
-import {PlayerNameService, OpponentNameService} from './name-service'
 import {
     MatchCommandStrategy, CommonMatchCommandStrategy,
     SetCommandStrategy, CommonSetCommandStrategy,
@@ -9,10 +8,7 @@ import {
     ServingStrategy, CommonServingStrategy,
     OnWinnerStrategy
 } from './strategy'
-import {CommandDecorator} from './command-decorator'
-import {CommandTitleDecorator} from './command-title-decorator'
 import {MatchCommandInvoker} from './command-invoker'
-import {MatchHistoryList} from './history'
 import {
     Container
 } from 'aurelia-dependency-injection'

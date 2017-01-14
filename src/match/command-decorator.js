@@ -1,6 +1,6 @@
 'use strict';
 
-import {Container, All} from 'aurelia-dependency-injection';
+import {All} from 'aurelia-dependency-injection';
 import {createFromFactory} from './di-util'
 import 'aurelia-polyfills';
 
