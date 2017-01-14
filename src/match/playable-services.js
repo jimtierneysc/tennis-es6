@@ -9,6 +9,8 @@ import {
     ServingStrategy, CommonServingStrategy,
     OnWinnerStrategy
 } from './strategy'
+import {CommandDecorator} from './command-decorator'
+import {CommandTitleDecorator} from './command-title-decorator'
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchHistoryList} from './history'
 import {
@@ -25,73 +27,58 @@ class PlayableMatchServices {
     constructor(container, match) {
         this.container = container;
         this.match = match;
-        this._servingStrategy = undefined;
-        this._matchCommandStrategy = undefined;
-        this._setGameCommandStrategy = undefined;
-        this._matchSetCommandStrategy = undefined;
-        this._onWinnerStrategy = undefined;
+        this.servingStrategy = undefined;
+        this.matchStrategy = undefined;
+        this.gameStrategy = undefined;
+        this.setStrategy = undefined;
+        this.onWinnerStrategy = undefined;
     }
 
     dispose() {
-        if (this._onWinnerStrategy)
-            this._onWinnerStrategy.dispose();
+        if (this.onWinnerStrategy)
+            this.onWinnerStrategy.dispose();
     }
 
     run() {
         // Subscribe to events
-        this._onWinnerStrategy = createFromFactory(this.container, OnWinnerStrategy);
+        this.onWinnerStrategy = createFromFactory(this.container, OnWinnerStrategy);
     }
 
     register(container) {
-        // Keep history of execute commands
-        container.registerInstance(MatchHistoryList, createFromFactory(container, MatchHistoryList));
+        // Command invoker singleton
+        container.registerSingleton(MatchCommandInvoker,
+            () => createFromFactory(container, MatchCommandInvoker));
 
-        // Command invoker
-        container.registerInstance(MatchCommandInvoker, createFromFactory(container, MatchCommandInvoker));
-
+        // For consistency, container.get returns a function for all strategies
         container.registerHandler(ServingStrategy,
-            () => () => this.servingStrategy);
+            () => () => {
+                this.servingStrategy = this.servingStrategy || createFromFactory(this.container, CommonServingStrategy);
+                return this.servingStrategy;
+            });
         container.registerHandler(GameCommandStrategy,
-            () => () => this.setGameCommandStrategy);
+            () => () => {
+                if (this.gameStrategy && this.gameStrategy.game != this.lastGame) {
+                    this.gameStrategy = undefined;
+                }
+                this.gameStrategy = this.gameStrategy || createFromFactory(this.container, CommonGameCommandStrategy);
+                return this.gameStrategy;
+            });
         container.registerHandler(SetCommandStrategy,
-            () => () => this.matchSetCommandStrategy);
-        container.registerHandler(MatchCommandStrategy,
-            () => () => this.matchCommandStrategy);
+            () => () => {
+                if (this.setStrategy && this.setStrategy.matchSet != this.lastSet) {
+                    this.setStrategy = undefined;
+                }
+                this.setStrategy = this.setStrategy || createFromFactory(this.container, CommonSetCommandStrategy);
+                return this.setStrategy;
+            });
+        container.registerSingleton(MatchCommandStrategy,
+            () => () => {
+                this.matchStrategy = this.matchStrategy || createFromFactory(this.container, CommonMatchCommandStrategy);
+                return this.matchStrategy;
+            });
 
-        // Add default name services
-        container.registerInstance(PlayerNameService, createFromFactory(container, PlayerNameService));
-        container.registerInstance(OpponentNameService, createFromFactory(container, OpponentNameService));
     }
-
-    get servingStrategy() {
-        if (!this._servingStrategy) {
-            this._servingStrategy = createFromFactory(this.container, CommonServingStrategy);
-        }
-        return this._servingStrategy;
-    }
-
-    get matchCommandStrategy() {
-        if (!this._matchCommandStrategy) {
-            this._matchCommandStrategy = createFromFactory(this.container, CommonMatchCommandStrategy);
-        }
-        return this._matchCommandStrategy;
-    }
-
-
-    get setGameCommandStrategy() {
-        if (!this._setGameCommandStrategy || this._setGameCommandStrategy.game != this.lastGame) {
-            this._setGameCommandStrategy = createFromFactory(this.container, CommonGameCommandStrategy);
-        }
-        return this._setGameCommandStrategy;
-    }
-
-    get matchSetCommandStrategy() {
-        if (!this._matchSetCommandStrategy || this._matchSetCommandStrategy.matchSet != this.lastSet) {
-            this._matchSetCommandStrategy = createFromFactory(this.container, CommonSetCommandStrategy);
-        }
-        return this._matchSetCommandStrategy;
-    }
-
+    
     get lastGame() {
         let lastSet = this.lastSet;
         if (lastSet) {

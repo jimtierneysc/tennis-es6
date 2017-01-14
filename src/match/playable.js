@@ -5,7 +5,7 @@ import {MatchHistoryList} from './history';
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './strategy'
 import {PlayerNameService, OpponentNameService} from './name-service'
-import {createFromFactory} from './di-util'
+import {createCommand} from './command-factory'
 
 class PlayableMatch {
 
@@ -51,11 +51,11 @@ class PlayableMatch {
 
     *otherCommands() {
         if (this.commandInvoker.canUndo) {
-            yield createFromFactory(this.container, UndoOperation);
+            yield createCommand(this.container, UndoOperation);
         }
 
         if (this.matchCommandStrategy.canStartOver) {
-            yield createFromFactory(this.container, StartOver);
+            yield createCommand(this.container, StartOver);
         }
     }
 

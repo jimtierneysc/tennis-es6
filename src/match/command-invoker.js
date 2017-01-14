@@ -1,23 +1,30 @@
 'use strict';
-import {MatchHistoryList} from './history'
+import {MatchHistory} from './history'
+import {Optional} from 'aurelia-dependency-injection';
 import 'aurelia-polyfills';
 
 const _undoStack = new WeakMap();
-const _historyList = new WeakMap();
+const _history = new WeakMap();
 
 class MatchCommandInvoker {
 
     static inject() {
-        return [MatchHistoryList];
+        return [Optional.of(MatchHistory)];
     }
-    constructor(historyList) {
-        _historyList.set(this, historyList);
+    constructor(history) {
+        _history.set(this, history);
         _undoStack.set(this, []);
     }
 
+    addToHistory(command) {
+        if (this.history) {
+            this.history.addCommand(command);
+        }
+    }
+    
     invoke(command) {
         command.execute();
-        this.historyList.addCommand(command);
+        this.addToHistory(command);
         if (command.undo)
             this.undoStack.push(command);
     }
@@ -31,7 +38,7 @@ class MatchCommandInvoker {
         if (this.canUndo) {
             let command = this.undoStack.splice(-1);
             command[0].undo();
-            this.historyList.addCommand(undoCommand);
+            this.addToHistory(undoCommand);
         }
     }
 
@@ -39,8 +46,8 @@ class MatchCommandInvoker {
         _undoStack.set(this, []);
     }
 
-    get historyList() {
-        return _historyList.get(this);
+    get history() {
+        return _history.get(this);
     }
 
     get undoStack() {

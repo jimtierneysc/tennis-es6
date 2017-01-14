@@ -2,7 +2,13 @@
 import inquirer from 'inquirer';
 import {createPlayableMatch} from '../../match/playable-factory';
 import {createNewMatch} from '../../match/factory';
+import {PlayerNameService, OpponentNameService} from '../../match/name-service'
+import {CommandDecorator} from '../../match/command-decorator'
+import {CommandTitleDecorator} from '../../match/command-title-decorator'
+import {MatchHistory} from '../../match/history'
+import {MatchHistoryList} from '../../match/history-list'
 import {Match, MatchSet, SetGame} from '../../match/entity'
+import {createFromFactory} from '../../match/di-util'
 
 
 function play() {
@@ -31,12 +37,10 @@ function play() {
 
         constructor() {
             this.playable = undefined;
-            this.commandMap = new Map();
             this.mode = modes.mainMenu;
-            this.done = false;
             this.messages = [];
             this.bottomBar = new inquirer.ui.BottomBar();
-            this.createMatchOptions = {};
+            this.matchOptions = {};
         }
 
         // Translate class name to a title
@@ -55,12 +59,32 @@ function play() {
             // create match entity
             const match = createNewMatch(options);
             // create services to play match
-            const playable = createPlayableMatch(match);
+            const playable = createPlayableMatch(match, this.matchRegister, this.matchRun);
 
             this.subscribe(playable);
-            this.resolvePlayerNames(playable);
 
             return playable;
+        }
+
+        matchRegister(container) {
+            // Add services used by this application
+
+            // Keep history of executed commands
+            container.registerInstance(MatchHistory, createFromFactory(container, MatchHistoryList));
+
+            // Add name services
+            const playerNameService = createFromFactory(container, PlayerNameService);
+            // Lookup player name
+            playerNameService.idToName = (id) => players[id - 1];
+            container.registerInstance(PlayerNameService, playerNameService);
+            container.registerInstance(OpponentNameService, createFromFactory(container, OpponentNameService));
+
+            // Decorate commands with title
+            container.registerInstance(CommandDecorator, createFromFactory(container, CommandTitleDecorator));
+        }
+
+        matchRun(playable) {
+            // Nothing to do
         }
 
         subscribe(playable) {
@@ -77,13 +101,6 @@ function play() {
             });
         }
 
-        resolvePlayerNames(playable) {
-            // Provide our player names
-            playable.playerNameService.idToName = (id) => {
-                return players[id - 1];
-            }
-        }
-
         showHistory() {
             for (const item of this.playable.historyList) {
                 this.messages.push(item.title);
@@ -94,33 +111,34 @@ function play() {
             switch (this.mode) {
                 case modes.mainMenu:
                 case modes.playMenu:
+                    const commandMap = new Map();
                     return {
-                        questions: this.menuQuestions(),
-                        handler: (answers) => this.commandMap.get(answers.command)()
+                        questions: this.menuQuestions(commandMap),
+                        handler: (answers, quit) => commandMap.get(answers.command)(quit)
                     };
                 case modes.matchKind:
                     return {
                         questions: this.matchKindQuestions(),
                         handler: (answers) => {
-                            this.createMatchOptions = {};
-                            if (answers.kind !== 'singles') {
-                                this.createMatchOptions.doubles = true;
+                            this.matchOptions = {};
+                            if (['singles', 'doubles'].includes(answers.kind)) {
+                                this.matchOptions[answers.kind] = true;
+                                this.mode = modes.playerNames;
+                            } else {
+                                this.mode = modes.mainMenu;
                             }
-                            this.mode = modes.playerNames;
                         }
                     };
                 case modes.playerNames:
                     return {
                         questions: this.playerNamesQuestions(),
                         handler: (answers) => {
-                            let options = this.createMatchOptions;
+                            let options = this.matchOptions;
                             options.players = [];
-                            options.players.push({id: playerId(answers.player1)});
-                            options.players.push({id: playerId(answers.player2)});
-                            if (options.doubles) {
-                                options.players.push({id: playerId(answers.player3)});
-                                options.players.push({id: playerId(answers.player4)});
-                            }
+                            this.playerNameFields.forEach((name)=>{
+                                const player = {id: playerId(answers[name])};
+                                options.players.push(player);
+                            });
                             this.playable = this.createMatch(options);
                             this.mode = modes.playMenu;
                         }
@@ -135,18 +153,26 @@ function play() {
                 type: 'rawlist',
                 name: 'kind',
                 message: 'What kind of match?',
-                choices: ['singles', 'doubles']
+                choices: ['singles', 'doubles', 'never mind']
             };
+            return result;
+        }
+
+        get playerNameFields() {
+            const result = [];
+            const count = this.matchOptions.doubles ? 4 : 2;
+            for (let i = 1; i <= count; i++) {
+                result.push(`p${i}`);
+            }
             return result;
         }
 
         playerNamesQuestions() {
             const result = [];
-            const playerCount = this.createMatchOptions.doubles ? 4 : 2;
-            for (let i = 1; i <= playerCount; i++) {
+            this.playerNameFields.forEach((name, i)=> {
                 result.push({
                     type: 'input',
-                    name: `player${i}`,
+                    name: name,
                     message: `Player ${i}?`,
                     validate: function (value) {
                         var pass = value.match(/^[a-zA-Z]([a-zA-Z ]){0,29}$/);
@@ -157,11 +183,11 @@ function play() {
                         return 'Please enter a name';
                     }
                 });
-            }
+            });
             return result;
         }
 
-        menuQuestions() {
+        menuQuestions(commandMap) {
             const result = {
                 type: 'rawlist',
                 name: 'command',
@@ -169,17 +195,16 @@ function play() {
                 choices: []
             };
             let rootMenu = false;
-            const commandMap = this.commandMap;
             try {
                 commandMap.clear();
                 switch (this.mode) {
                     case modes.mainMenu:
                         if (this.playable) {
-                            commandMap.set('play', () => this.mode = modes.play);
+                            commandMap.set('play', () => this.mode = modes.playMenu);
                             commandMap.set('history', () => this.showHistory());
                         }
                         commandMap.set('new', () => this.mode = modes.matchKind);
-                        commandMap.set('quit', () => this.done = true);
+                        commandMap.set('quit', (quit) => quit());
                         rootMenu = true;
                         break;
                     case modes.playMenu:
@@ -206,8 +231,9 @@ function play() {
         promptLoop(resolve) {
             const request = this.createRequest();
             inquirer.prompt(request.questions).then((answers) => {
+                let quit = false;
                 try {
-                    request.handler(answers);
+                    request.handler(answers, ()=>quit = true);
                     // Write messages that were posted while handling request
                     while (this.messages.length) {
                         const message = this.messages.splice(0, 1)[0];
@@ -216,7 +242,7 @@ function play() {
                 } catch (e) {
                     this.bottomBar.log.write(e);
                 }
-                if (!this.done) {
+                if (!quit) {
                     this.promptLoop(resolve);
                 } else {
                     resolve('done');

@@ -9,7 +9,7 @@ import {
 import {Match, MatchSet, SetGame} from './entity'
 import {Container} from 'aurelia-dependency-injection';
 import 'aurelia-polyfills';
-import {createFromFactory} from './di-util'
+import {createCommand} from './command-factory'
 
 class OnWinnerStrategy {
     static inject() {
@@ -277,17 +277,17 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
 
     * commands() {
         if (!this.match.warmingUp && !this.match.started) {
-            yield createFromFactory(this.container, StartWarmup);
+            yield createCommand(this.container, StartWarmup);
         }
         if (!this.match.started) {
             for (let server of this.servingStrategy().serverChoices()) {
-                yield createFromFactory(this.container, StartPlay, server.id);
+                yield createCommand(this.container, StartPlay, server.id);
              }
         }
         if (this._canStartSet) {
-            yield this.container.get(StartSet);
+            yield createCommand(this.container, StartSet);
         } else if (this._canStartMatchTiebreak) {
-            yield createFromFactory(this.container, StartMatchTiebreak);
+            yield createCommand(this.container, StartMatchTiebreak);
         }
     }
 }
@@ -396,13 +396,13 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
         if (this._canStartGame) {
             if (!this.servingStrategy().knowServingOrder) {
                 for (let player of this.servingStrategy().serverChoices()) {
-                    yield createFromFactory(this.container, StartGame, player.id);
+                    yield createCommand(this.container, StartGame, player.id);
                 }
             } else {
-                yield createFromFactory(this.container, StartGame);
+                yield createCommand(this.container, StartGame);
             }
         } else if (this._canStartSetTiebreak) {
-            yield createFromFactory(this.container, StartSetTiebreak);
+            yield createCommand(this.container, StartSetTiebreak);
         }
     }
 }
@@ -436,11 +436,11 @@ class CommonGameCommandStrategy extends GameCommandStrategy {
         if (this.game && !this.game.winnerId) {
             for (let opponent of this.opponents) {
                 if (this.game.setTiebreak)
-                    yield createFromFactory(this.container, WinSetTiebreak, opponent.id);
+                    yield createCommand(this.container, WinSetTiebreak, opponent.id);
                 else if (this.game.matchTiebreak)
-                    yield createFromFactory(this.container, WinMatchTiebreak, opponent.id);
+                    yield createCommand(this.container, WinMatchTiebreak, opponent.id);
                 else {
-                    yield createFromFactory(this.container, WinGame, opponent.id);
+                    yield createCommand(this.container, WinGame, opponent.id);
                 }
             }
         }

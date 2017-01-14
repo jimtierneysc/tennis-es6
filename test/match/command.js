@@ -459,9 +459,6 @@ describe('undo', () => {
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
                 });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
-                });
                 describe('when-undo', () => {
                     beforeEach(() => {
                         playableMatch.commandInvoker.invoke(commands[0]);
@@ -488,9 +485,6 @@ describe('undo', () => {
 
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
-                });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
                 });
                 describe('when-undo', () => {
                     beforeEach(() => {
@@ -526,9 +520,6 @@ describe('undo', () => {
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
                 });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
-                });
                 describe('when-undo', () => {
                     beforeEach(() => {
                         playableMatch.commandInvoker.invoke(commands[0]);
@@ -562,9 +553,6 @@ describe('undo', () => {
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
                 });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
-                });
                 describe('when-undo', () => {
                     beforeEach(() => {
                         playableMatch.commandInvoker.invoke(commands[0]);
@@ -596,9 +584,6 @@ describe('undo', () => {
 
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
-                });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
                 });
                 describe('when-undo', () => {
                     beforeEach(() => {
@@ -640,9 +625,6 @@ describe('undo', () => {
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
                 });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
-                });
                 describe('when-undo', () => {
                     beforeEach(() => {
                         playableMatch.commandInvoker.invoke(commands[0]);
@@ -680,9 +662,6 @@ describe('undo', () => {
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
                 });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
-                });
                 describe('when-undo', () => {
                     beforeEach(() => {
                         playableMatch.commandInvoker.invoke(commands[0]);
@@ -712,9 +691,6 @@ describe('undo', () => {
 
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
-                });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
                 });
                 describe('when-undo', () => {
                     beforeEach(() => {
@@ -748,9 +724,6 @@ describe('undo', () => {
 
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
-                });
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
                 });
                 describe('when-undo', () => {
                     beforeEach(() => {
@@ -787,10 +760,6 @@ describe('undo', () => {
 
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
-                });
-
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
                 });
 
                 describe('when-undo', () => {
@@ -836,10 +805,6 @@ describe('undo', () => {
 
                 it('should have undo command', () => {
                     expect(commands.length).to.be.equal(1);
-                });
-
-                it('should have command title', () => {
-                    expect(commands[0].title).to.be.string;
                 });
 
                 describe('when-undo', () => {

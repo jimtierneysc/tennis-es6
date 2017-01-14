@@ -8,7 +8,7 @@ import {createFromFactory} from './di-util'
 
 class PlayableMatchFactory {
 
-    static create(match) {
+    static create(match, register, run) {
 
         // DI container
         const container = new Container();
@@ -22,11 +22,16 @@ class PlayableMatchFactory {
 
         // Register services with DI container
         services.register(container);
-
-        // Get ready to play
-        services.run();
+        if (register) {
+            register(container);
+        }
 
         const result = new PlayableMatch(container);
+        // Get ready to play
+        services.run(result);
+        if (run)
+            run(result);
+
         return result;
     }
 
