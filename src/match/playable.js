@@ -1,7 +1,7 @@
 'use strict';
 import {UndoOperation, StartOver} from './command'
 import {Match} from './entity';
-import {MatchHistoryList} from './history';
+import {MatchHistory} from './history';
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './strategy'
 import {PlayerNameService, OpponentNameService} from './name-service'
@@ -37,8 +37,8 @@ class PlayableMatch {
         return this.container.get(ServingStrategy)();
     }
 
-    get historyList() {
-        return this.container.get(MatchHistoryList);
+    get history() {
+        return this.container.get(MatchHistory);
     }
 
     get playerNameService() {

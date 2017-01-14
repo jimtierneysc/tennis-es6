@@ -12,7 +12,7 @@ class MatchHistoryList extends MatchHistory {
     }
 
     addCommand(command) {
-        const result = new MatchHistoryCommandItem(this);
+        const result = new MatchHistoryCommandItem(this.list);
         result.saveCommand(command);
         return result;
     }

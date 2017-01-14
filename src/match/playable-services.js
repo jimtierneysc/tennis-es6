@@ -9,6 +9,7 @@ import {
     OnWinnerStrategy
 } from './strategy'
 import {MatchCommandInvoker} from './command-invoker'
+import {MatchOptions} from './options'
 import {
     Container
 } from 'aurelia-dependency-injection'
@@ -64,7 +65,8 @@ class PlayableMatchServices {
                 if (this.setStrategy && this.setStrategy.matchSet != this.lastSet) {
                     this.setStrategy = undefined;
                 }
-                this.setStrategy = this.setStrategy || createFromFactory(this.container, CommonSetCommandStrategy);
+                this.setStrategy = this.setStrategy ||
+                    createFromFactory(this.container, CommonSetCommandStrategy, this.matchSetOptions);
                 return this.setStrategy;
             });
         container.registerSingleton(MatchCommandStrategy,
@@ -74,7 +76,24 @@ class PlayableMatchServices {
             });
 
     }
-    
+
+    get options() {
+        return this.match.options || {};
+    }
+
+    get matchSetOptions() {
+        return {
+            winThreshold: (()=>{
+                switch(this.match.options.scoring) {
+                    case MatchOptions.scoring.eightGameProSet:
+                        return 8;
+                    default:
+                        return 6;
+                }
+            })()
+        }
+    }
+
     get lastGame() {
         let lastSet = this.lastSet;
         if (lastSet) {

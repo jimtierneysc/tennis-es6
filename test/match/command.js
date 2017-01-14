@@ -165,7 +165,7 @@ describe('win-set', () => {
                 util.startPlay(playableMatch);
             });
 
-            for (let i = 1; i <= 6; i++) {
+            for (let i = 1; i <= MatchOptions.winSetThreshold(params.options); i++) {
                 describe(`game-${i}`, () => {
                     describe('start-game', () => {
                         beforeEach(() => {
@@ -197,7 +197,7 @@ describe('win-set', () => {
                                 it('should have correct score', () => {
                                     expect(playableMatch.match.sets.last.scores).to.be.eql([i, 0]);
                                 });
-                                if (i === 6) {
+                                if (i === MatchOptions.winSetThreshold(params.options)) {
                                     describe(`game-${i}`, () => {
                                         it('should not be in progress', () => {
                                             expect(playableMatch.match.sets.last.inProgress).not.to.be.ok;
@@ -228,7 +228,7 @@ describe('win-set', () => {
 });
 
 describe('second-set', () => {
-    testParams.forEach((params) => {
+    testParams.filter((params) => MatchOptions.winMatchThreshold(params.options) > 1).forEach((params) => {
         describe(params.title, () => {
             let playableMatch;
             beforeEach(() => {
@@ -267,7 +267,7 @@ describe('second-set', () => {
 
 
 describe('match-tiebreak', () => {
-    testParams.forEach((params) => {
+    testParams.filter((params) => MatchOptions.finalSetIsTiebreak(params.options)).forEach((params) => {
         describe(params.title, () => {
             let playableMatch;
             let commands;
@@ -324,9 +324,7 @@ describe('set-tiebreak', () => {
             let commands;
             beforeEach(() => {
                 playableMatch = util.makeMatch(params.options);
-                util.winGames(playableMatch, 1, 5);
-                util.winGames(playableMatch, 2, 6);
-                util.winGames(playableMatch, 1, 1);
+                util.tieSet(playableMatch);
                 commands = util.filterCommands([...playableMatch.matchSetCommands()], StartSetTiebreak);
             });
 
@@ -377,27 +375,27 @@ describe('win-match', () => {
                 playableMatch = util.makeMatch(params.options);
             });
 
-            describe('in-2-sets', () => {
+            describe('in-straight-sets', () => {
                 beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 1);
+                    util.winMatch(playableMatch, 1);
                 });
                 it('should have won match', () => {
                     expect(playableMatch.match.winnerId).to.be.equal(1);
                 });
             });
 
-            describe('in-3-sets', () => {
-                beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 2);
-                    util.startMatchTiebreak(playableMatch);
-                    util.winMatchTiebreak(playableMatch, 2);
+            if (MatchOptions.finalSetIsTiebreak(params.options)) {
+                describe('in-tiebreaker', () => {
+                    beforeEach(() => {
+                        util.tieMatch(playableMatch);
+                        util.startMatchTiebreak(playableMatch);
+                        util.winMatchTiebreak(playableMatch, 2);
+                    });
+                    it('should have won match', () => {
+                        expect(playableMatch.match.winnerId).to.be.equal(2);
+                    });
                 });
-                it('should have won match', () => {
-                    expect(playableMatch.match.winnerId).to.be.equal(2);
-                });
-            });
+            }
 
         });
 
@@ -532,7 +530,7 @@ describe('undo', () => {
 
                     it('should have start game command', () => {
                         let commands = util.filterCommands([...playableMatch.matchSetCommands()], StartGame);
-                        expect(commands.length).to.be.equal(MatchOptions.playerCount(params.options)/2);
+                        expect(commands.length).to.be.equal(MatchOptions.playerCount(params.options) / 2);
                     });
                 });
             });
@@ -542,9 +540,7 @@ describe('undo', () => {
                 let matchSet;
                 let gameCount;
                 beforeEach(() => {
-                    util.winGames(playableMatch, 1, 5);
-                    util.winGames(playableMatch, 2, 6);
-                    util.winGames(playableMatch, 1, 1);
+                    util.tieSet(playableMatch);
                     util.startSetTiebreak(playableMatch);
                     matchSet = playableMatch.match.sets.last;
                     gameCount = matchSet.games.count;
@@ -612,9 +608,7 @@ describe('undo', () => {
                 let matchSet;
                 let commands;
                 beforeEach(() => {
-                    util.winGames(playableMatch, 1, 5);
-                    util.winGames(playableMatch, 2, 6);
-                    util.winGames(playableMatch, 1, 1);
+                    util.tieSet(playableMatch);
                     util.startSetTiebreak(playableMatch);
                     util.winSetTiebreak(playableMatch, 1);
                     matchSet = playableMatch.match.sets.last;
@@ -650,64 +644,69 @@ describe('undo', () => {
                 });
             });
 
-            describe('start-set', () => {
-                let setCount;
-                let commands;
-                beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.tryStartSet(playableMatch);
-                    setCount = playableMatch.match.sets.count;
-                    commands = util.filterCommands([...playableMatch.otherCommands()], UndoOperation);
-                });
-
-                it('should have undo command', () => {
-                    expect(commands.length).to.be.equal(1);
-                });
-                describe('when-undo', () => {
+            if (MatchOptions.winMatchThreshold(params.options) > 1) {
+                describe('start-set', () => {
+                    let setCount;
+                    let commands;
                     beforeEach(() => {
-                        playableMatch.commandInvoker.invoke(commands[0]);
+                        util.winSet(playableMatch, 1);
+                        util.tryStartSet(playableMatch);
+                        setCount = playableMatch.match.sets.count;
+                        commands = util.filterCommands([...playableMatch.otherCommands()], UndoOperation);
                     });
 
-                    it('should have one less set', () => {
-                        expect(playableMatch.match.sets.count).to.equal(setCount - 1);
-                    });
-                    it('should have start set command', () => {
-                        let commands = util.filterCommands([...playableMatch.matchCommands()], StartSet);
+                    it('should have undo command', () => {
                         expect(commands.length).to.be.equal(1);
                     });
-                });
+                    describe('when-undo', () => {
+                        beforeEach(() => {
+                            playableMatch.commandInvoker.invoke(commands[0]);
+                        });
 
-            });
+                        it('should have one less set', () => {
+                            expect(playableMatch.match.sets.count).to.equal(setCount - 1);
+                        });
+                        it('should have start set command', () => {
+                            let commands = util.filterCommands([...playableMatch.matchCommands()], StartSet);
+                            expect(commands.length).to.be.equal(1);
+                        });
+                    });
 
-            describe('start-match-tiebreak', () => {
-                let setCount;
-                let commands;
-                beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 2);
-                    util.startMatchTiebreak(playableMatch);
-                    setCount = playableMatch.match.sets.count;
-                    commands = util.filterCommands([...playableMatch.otherCommands()], UndoOperation);
                 });
+            }
 
-                it('should have undo command', () => {
-                    expect(commands.length).to.be.equal(1);
-                });
-                describe('when-undo', () => {
+            if (MatchOptions.finalSetIsTiebreak(params.options)) {
+                describe('start-match-tiebreak', () => {
+                    let setCount;
+                    let commands;
                     beforeEach(() => {
-                        playableMatch.commandInvoker.invoke(commands[0]);
+                        util.winSet(playableMatch, 1);
+                        util.winSet(playableMatch, 2);
+                        util.startMatchTiebreak(playableMatch);
+                        setCount = playableMatch.match.sets.count;
+                        commands = util.filterCommands([...playableMatch.otherCommands()], UndoOperation);
                     });
 
-                    it('should have one less set', () => {
-                        expect(playableMatch.match.sets.count).to.equal(setCount - 1);
-                    });
-                    it('should have start match tiebreak command', () => {
-                        let commands = util.filterCommands([...playableMatch.matchCommands()], StartMatchTiebreak);
+                    it('should have undo command', () => {
                         expect(commands.length).to.be.equal(1);
                     });
-                });
+                    describe('when-undo', () => {
+                        beforeEach(() => {
+                            playableMatch.commandInvoker.invoke(commands[0]);
+                        });
 
-            });
+                        it('should have one less set', () => {
+                            expect(playableMatch.match.sets.count).to.equal(setCount - 1);
+                        });
+                        it('should have start match tiebreak command', () => {
+                            let commands = util.filterCommands([...playableMatch.matchCommands()], StartMatchTiebreak);
+                            expect(commands.length).to.be.equal(1);
+                        });
+                    });
+
+                });
+            }
+            ;
 
             describe('win-set', () => {
                 let commands;
@@ -751,8 +750,7 @@ describe('undo', () => {
                 let matchScores;
                 let winnerId;
                 beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 1);
+                    util.winMatch(playableMatch, 1);
                     winnerId = playableMatch.match.winnerId;
 
                     matchScores = playableMatch.match.scores;
@@ -789,49 +787,50 @@ describe('undo', () => {
 
             });
 
-            describe('win-match-tiebreak', () => {
-                let commands;
-                let matchScores;
-                let winnerId;
-                beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 2);
-                    util.startMatchTiebreak(playableMatch);
-                    util.winMatchTiebreak(playableMatch, 1);
-                    winnerId = playableMatch.match.winnerId;
-
-                    matchScores = playableMatch.match.scores;
-                    commands = util.filterCommands([...playableMatch.otherCommands()], UndoOperation);
-                });
-
-                it('should have undo command', () => {
-                    expect(commands.length).to.be.equal(1);
-                });
-
-                describe('when-undo', () => {
+            if (MatchOptions.finalSetIsTiebreak(params.options)) {
+                describe('win-match-tiebreak', () => {
+                    let commands;
+                    let matchScores;
+                    let winnerId;
                     beforeEach(() => {
-                        playableMatch.commandInvoker.invoke(commands[0]);
+                        util.tieMatch(playableMatch);
+                        util.startMatchTiebreak(playableMatch);
+                        util.winMatchTiebreak(playableMatch, 1);
+                        winnerId = playableMatch.match.winnerId;
+
+                        matchScores = playableMatch.match.scores;
+                        commands = util.filterCommands([...playableMatch.otherCommands()], UndoOperation);
                     });
 
-                    it('should win one less set', () => {
-                        expect(playableMatch.match.scores).to.eql([matchScores[0] - 1, matchScores[1]]);
+                    it('should have undo command', () => {
+                        expect(commands.length).to.be.equal(1);
                     });
 
-                    it('should not have winner', () => {
-                        expect(playableMatch.match.winnerId).not.to.equal(winnerId);
-                    });
+                    describe('when-undo', () => {
+                        beforeEach(() => {
+                            playableMatch.commandInvoker.invoke(commands[0]);
+                        });
 
-                    it('should not have winner', () => {
-                        expect(playableMatch.match.winnerId).not.to.exist;
-                    });
+                        it('should win one less set', () => {
+                            expect(playableMatch.match.scores).to.eql([matchScores[0] - 1, matchScores[1]]);
+                        });
 
-                    it('should have win match tiebreak command', () => {
-                        let commands = util.filterCommands([...playableMatch.setGameCommands()], WinMatchTiebreak);
-                        expect(commands.length).to.be.equal(2);
-                    });
+                        it('should not have winner', () => {
+                            expect(playableMatch.match.winnerId).not.to.equal(winnerId);
+                        });
 
+                        it('should not have winner', () => {
+                            expect(playableMatch.match.winnerId).not.to.exist;
+                        });
+
+                        it('should have win match tiebreak command', () => {
+                            let commands = util.filterCommands([...playableMatch.setGameCommands()], WinMatchTiebreak);
+                            expect(commands.length).to.be.equal(2);
+                        });
+
+                    });
                 });
-            });
+            }
         });
 
         describe('all-commands', () => {
@@ -874,60 +873,61 @@ describe('undo', () => {
 
             });
 
-            describe('win-set', () => {
-                beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                });
-                it('should have commands', () => {
-                    expect(util.hasCommands(playableMatch, [StartSet, StartOver, UndoOperation])).to.be.true;
-                });
-
-                describe('start-set', () => {
+            if (MatchOptions.winMatchThreshold(params.options) > 1) {
+                describe('win-set', () => {
                     beforeEach(() => {
-                        util.tryStartSet(playableMatch);
+                        util.winSet(playableMatch, 1);
                     });
                     it('should have commands', () => {
-                        expect(util.hasCommands(playableMatch, [WinGame, WinGame, StartOver, UndoOperation])).to.be.true;
+                        expect(util.hasCommands(playableMatch, [StartSet, StartOver, UndoOperation])).to.be.true;
+                    });
+
+
+                    describe('start-set', () => {
+                        beforeEach(() => {
+                            util.tryStartSet(playableMatch);
+                        });
+                        it('should have commands', () => {
+                            expect(util.hasCommands(playableMatch, [WinGame, WinGame, StartOver, UndoOperation])).to.be.true;
+                        });
                     });
                 });
-            });
+            }
 
             describe('win-match', () => {
                 beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 1);
+                    util.winMatch(playableMatch, 1);
                 });
                 it('should have commands', () => {
                     expect(util.hasCommands(playableMatch, [StartOver, UndoOperation])).to.be.true;
                 });
             });
 
-            describe('start-match-tiebreak', () => {
-                beforeEach(() => {
-                    util.winSet(playableMatch, 1);
-                    util.winSet(playableMatch, 2);
-                });
-                it('should have commands', () => {
-                    expect(util.hasCommands(playableMatch, [StartMatchTiebreak, StartOver, UndoOperation])).to.be.true;
-                });
-
-                describe('win-match-tiebreak', () => {
+            if (MatchOptions.finalSetIsTiebreak(params.options)) {
+                describe('start-match-tiebreak', () => {
                     beforeEach(() => {
-                        util.startMatchTiebreak(playableMatch);
+                        util.tieMatch(playableMatch);
                     });
                     it('should have commands', () => {
-                        expect(util.hasCommands(playableMatch, [WinMatchTiebreak, WinMatchTiebreak, StartOver, UndoOperation])).to.be.true;
+                        expect(util.hasCommands(playableMatch, [StartMatchTiebreak, StartOver, UndoOperation])).to.be.true;
                     });
 
+                    describe('win-match-tiebreak', () => {
+                        beforeEach(() => {
+                            util.startMatchTiebreak(playableMatch);
+                        });
+                        it('should have commands', () => {
+                            expect(util.hasCommands(playableMatch, [WinMatchTiebreak, WinMatchTiebreak, StartOver, UndoOperation])).to.be.true;
+                        });
 
-                })
-            });
+
+                    })
+                });
+            }
 
             describe('start-set-tiebreak', () => {
                 beforeEach(() => {
-                    util.winGames(playableMatch, 1, 5);
-                    util.winGames(playableMatch, 2, 6);
-                    util.winGames(playableMatch, 1, 1);
+                    util.tieSet(playableMatch);
                 });
                 it('should have commands', () => {
                     expect(util.hasCommands(playableMatch, [StartSetTiebreak, StartOver, UndoOperation])).to.be.true;

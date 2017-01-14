@@ -83,6 +83,28 @@ class Utils {
         }
     }
 
+    static winMatch(playableMatch, opponent) {
+        while (!playableMatch.match.winnerId) {
+            Utils.winSet(playableMatch, opponent);
+        }
+    }
+
+    static tieSet(playableMatch) {
+        let threshold = MatchOptions.winSetThreshold(playableMatch.match.options);
+        Utils.winGames(playableMatch, 1, threshold - 1);
+        Utils.winGames(playableMatch, 2, threshold);
+        Utils.winGames(playableMatch, 1, 1);
+    }
+
+    static tieMatch(playableMatch) {
+        let threshold = MatchOptions.winMatchThreshold(playableMatch.match.options);
+        threshold = threshold / 2;
+        while(threshold--) {
+            Utils.winSet(playableMatch, 1);
+            Utils.winSet(playableMatch, 2);
+        }
+    }
+
     static startMatchTiebreak(playableMatch) {
         let commands = Utils.filterCommands([...playableMatch.matchCommands()], StartMatchTiebreak);
         if (commands.length === 0)
@@ -146,6 +168,14 @@ class Utils {
         });
     };
 
+    static get singlesThreeSetOptions() {
+        return Utils.addPlayers({
+            title: 'singles-three-sets',
+            kind: MatchOptions.kind.singles,
+            scoring: MatchOptions.scoring.threeSets
+        });
+    };
+
     static makeMatch(options) {
         options = options || {kind: MatchOptions.kind.singles};
         Utils.addPlayers(options);
@@ -165,7 +195,6 @@ class Utils {
             title: 'singles-pro-set',
             options: Utils.singlesProSetOptions,
         }
-
     ];
 }
 

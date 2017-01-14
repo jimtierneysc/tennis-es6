@@ -31,7 +31,8 @@ function play() {
         playMenu: 1,
         mainMenu: 2,
         matchKind: 3,
-        playerNames: 4
+        playerNames: 4,
+        matchScoring: 5
     };
 
     class MatchPlay {
@@ -56,9 +57,9 @@ function play() {
             return name;
         }
 
-        createMatch(options) {
+        createMatch() {
             // create match entity
-            const match = createNewMatch(options);
+            const match = createNewMatch(this.matchOptions);
             // create services to play match
             const playable = createPlayableMatch(match, this.matchRegister);
 
@@ -68,14 +69,13 @@ function play() {
         }
 
         matchRegister(container) {
-            // Add services used by this application
+            // Add optional services
 
             // Keep history of executed commands
             container.registerInstance(MatchHistory, createFromFactory(container, MatchHistoryList));
 
-            // Add name services
+            // Add name services to provide player names from id
             const playerNameService = createFromFactory(container, PlayerNameService);
-            // Lookup player name
             playerNameService.idToName = (id) => players[id - 1];
             container.registerInstance(PlayerNameService, playerNameService);
             container.registerInstance(OpponentNameService, createFromFactory(container, OpponentNameService));
@@ -99,7 +99,7 @@ function play() {
         }
 
         showHistory() {
-            for (const item of this.playable.historyList) {
+            for (const item of this.playable.history.list) {
                 this.messages.push(item.title);
             }
         }
@@ -122,7 +122,7 @@ function play() {
                                 this.matchOptions.kind = answers.kind;
                                 this.mode = modes.playerNames;
                             } else {
-                                this.mode = modes.mainMenu;
+                                this.mode = modes.menu;
                             }
                         }
                     };
@@ -136,11 +136,23 @@ function play() {
                                 const player = {id: playerId(answers[name])};
                                 options.players.push(player);
                             });
-                            this.playable = this.createMatch(options);
-                            this.mode = modes.playMenu;
+                            this.mode = modes.matchScoring;
                         }
                     };
-                default:
+                case modes.matchScoring:
+                    return {
+                        questions: this.matchScoringQuestions(),
+                        handler: (answers) => {
+                            if (MatchOptions.scorings.includes(answers.scoring)) {
+                                this.matchOptions.scoring = answers.scoring;
+                                this.playable = this.createMatch();
+                                this.mode = modes.playMenu;
+                            } else {
+                                this.mode = modes.mainMenu;
+                            }
+                        }
+                    };
+               default:
                     throw new Error(`unexpected: ${this.mode}`);
             }
         }
@@ -151,6 +163,16 @@ function play() {
                 name: 'kind',
                 message: 'What kind of match?',
                 choices: [...MatchOptions.kinds, 'never mind']
+            };
+            return result;
+        }
+
+        matchScoringQuestions() {
+            const result = {
+                type: 'rawlist',
+                name: 'scoring',
+                message: 'What scoring?',
+                choices: MatchOptions.scorings
             };
             return result;
         }
@@ -170,7 +192,7 @@ function play() {
                 result.push({
                     type: 'input',
                     name: name,
-                    message: `Player ${i}?`,
+                    message: `Player ${i+1}?`,
                     validate: function (value) {
                         var pass = value.match(/^[a-zA-Z]([a-zA-Z ]){0,29}$/);
                         if (pass) {

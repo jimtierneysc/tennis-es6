@@ -7,6 +7,7 @@ import {
 } from './command';
 
 import {Match, MatchSet, SetGame} from './entity'
+import {MatchOptions} from './options'
 import {Container} from 'aurelia-dependency-injection';
 import 'aurelia-polyfills';
 import {createCommand} from './command-factory'
@@ -250,7 +251,7 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
     }
 
     get _winThreshold() {
-        return 2;
+        return MatchOptions.winMatchThreshold(this.match.options);
     }
 
     get _canStartSet() {
@@ -258,13 +259,15 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
     }
 
     get _canStartMatchTiebreak() {
-        return this.match.inProgress && this.match.scores && !this.match.sets.last.inProgress &&
-            this.match.scores[0] === 1 && this.match.scores[1] === 1;
+        return MatchOptions.finalSetIsTiebreak(this.match.options) &&
+            this.match.inProgress && this.match.scores && !this.match.sets.last.inProgress &&
+            this.match.scores[0] === this.match.scores[1] && this.match.scores[0] + 1 === this._winThreshold;
     }
 
     _updateWinner(scores) {
         let winningScore;
         let max = Math.max(...scores);
+
         if (max === this._winThreshold) {
             winningScore = max; // tiebreak
         }
@@ -282,7 +285,7 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
         if (!this.match.started) {
             for (let server of this.servingStrategy().serverChoices()) {
                 yield createCommand(this.container, StartPlay, server.id);
-             }
+            }
         }
         if (this._canStartSet) {
             yield createCommand(this.container, StartSet);
@@ -301,11 +304,13 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
         return [Container, Match, ServingStrategy];
     }
 
-    constructor(container, match, servingStrategy) {
+    constructor(container, match, servingStrategy, options) {
         super();
+        this.match = match;
         this.container = container;
         this.matchSet = match.sets.last;
         this.servingStrategy = servingStrategy;
+        this.options = options;
     }
 
     onWinGame(entity) {
@@ -341,10 +346,6 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
         this.matchSet.games.last.winnerId = undefined;
     }
 
-    get _winThreshold() {
-        return 6;
-    }
-
     _updateScore(game) {
         let scores = [0, 0];
 
@@ -366,9 +367,10 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
         if (game.matchTiebreak && max == 1) {
             winningScore = max
         } else {
-            if (max === this._winThreshold + 1 && min === this._winThreshold) {
+            let winThreshold = MatchOptions.winSetThreshold(this.match.options);
+            if (max === winThreshold + 1 && min === winThreshold) {
                 winningScore = max; // tiebreak
-            } else if (max >= this._winThreshold && max - min >= 2) {
+            } else if (max >= winThreshold && max - min >= 2) {
                 winningScore = max;
             }
         }
@@ -388,8 +390,9 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
     }
 
     get _canStartSetTiebreak() {
+        const threshold = MatchOptions.winSetThreshold(this.match.options);
         return (this.matchSet &&
-        this.matchSet.games.last.finished && this.matchSet.scores[0] === 6 && this.matchSet.scores[1] === 6);
+        this.matchSet.games.last.finished && this.matchSet.scores[0] === threshold && this.matchSet.scores[1] === threshold);
     }
 
     * commands() {
