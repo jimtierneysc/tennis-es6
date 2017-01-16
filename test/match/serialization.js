@@ -1,6 +1,6 @@
 import {expect} from 'chai';
 import {playableMatchFactory} from '../../src/match/playable-factory';
-import {Match} from '../../src/match/entity';
+import {Match} from '../../src/match/model';
 import {Utils as util} from './command-util';
 
 

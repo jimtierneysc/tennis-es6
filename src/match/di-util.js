@@ -1,6 +1,6 @@
 'use strict';
 import {
-    Factory
+    Factory, Optional, Container
 } from 'aurelia-dependency-injection';
 
 // Use DI container to create an instance.
@@ -10,5 +10,13 @@ function createFromFactory(container, key, ...rest) {
     return fn(...rest);
 }
 
-export {createFromFactory};
+// Do not instantiate classes if the container has no instance
+function makeOptional(value) {
+    // (must not use Optional.of with Container)
+    const newValue = value.map((value)=>value===Container ? Container : Optional.of(value));
+    return newValue;
+
+}
+
+export {createFromFactory, makeOptional};
 

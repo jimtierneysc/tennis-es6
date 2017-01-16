@@ -1,33 +1,33 @@
 'use strict';
-import {Match} from './entity'
-import {createFromFactory} from './di-util'
+import {Match} from './model'
+import {createFromFactory, makeOptional} from './di-util'
 import {
-    MatchCommandStrategy, CommonMatchCommandStrategy,
-    SetCommandStrategy, CommonSetCommandStrategy,
-    GameCommandStrategy, CommonGameCommandStrategy,
-    ServingStrategy, CommonServingStrategy,
-    OnWinnerStrategy
-} from './strategy'
+    MatchController, BasicMatchController,
+    MatchSetController, BasicMatchSetController,
+    SetGameController, BasicSetGameController,
+    MatchControllerEvents
+} from './controller'
 import {MatchCommandInvoker} from './command-invoker'
 import {MatchOptions} from './options'
+import {ServingStrategy, BasicServingStrategy} from './serving'
 import {
     Container
 } from 'aurelia-dependency-injection'
 import 'aurelia-polyfills'
 
-class PlayableMatchServices {
+class PlayableServices {
 
     static inject() {
-        return [Container, Match]
+        return makeOptional([Container, Match])
     }
 
     constructor(container, match) {
         this.container = container;
         this.match = match;
         this.servingStrategy = undefined;
-        this.matchStrategy = undefined;
+        this.matchController = undefined;
         this.gameStrategy = undefined;
-        this.setStrategy = undefined;
+        this.matchSetController = undefined;
         this.onWinnerStrategy = undefined;
     }
 
@@ -38,7 +38,7 @@ class PlayableMatchServices {
 
     run() {
         // Subscribe to events
-        this.onWinnerStrategy = createFromFactory(this.container, OnWinnerStrategy);
+        this.onWinnerStrategy = createFromFactory(this.container, MatchControllerEvents);
     }
 
     register(container) {
@@ -46,39 +46,35 @@ class PlayableMatchServices {
         container.registerSingleton(MatchCommandInvoker,
             () => createFromFactory(container, MatchCommandInvoker));
 
-        // For consistency, container.get returns a function for all strategies
+        // For consistency, container.get returns a function for all controller
         container.registerHandler(ServingStrategy,
             () => () => {
-                this.servingStrategy = this.servingStrategy || createFromFactory(this.container, CommonServingStrategy);
+                this.servingStrategy = this.servingStrategy || createFromFactory(this.container, BasicServingStrategy);
                 return this.servingStrategy;
             });
-        container.registerHandler(GameCommandStrategy,
+        container.registerHandler(SetGameController,
             () => () => {
                 if (this.gameStrategy && this.gameStrategy.game != this.lastGame) {
                     this.gameStrategy = undefined;
                 }
-                this.gameStrategy = this.gameStrategy || createFromFactory(this.container, CommonGameCommandStrategy);
+                this.gameStrategy = this.gameStrategy || createFromFactory(this.container, BasicSetGameController);
                 return this.gameStrategy;
             });
-        container.registerHandler(SetCommandStrategy,
+        container.registerHandler(MatchSetController,
             () => () => {
-                if (this.setStrategy && this.setStrategy.matchSet != this.lastSet) {
-                    this.setStrategy = undefined;
+                if (this.matchSetController && this.matchSetController.matchSet != this.lastSet) {
+                    this.matchSetController = undefined;
                 }
-                this.setStrategy = this.setStrategy ||
-                    createFromFactory(this.container, CommonSetCommandStrategy, this.matchSetOptions);
-                return this.setStrategy;
+                this.matchSetController = this.matchSetController ||
+                    createFromFactory(this.container, BasicMatchSetController, this.matchSetOptions);
+                return this.matchSetController;
             });
-        container.registerSingleton(MatchCommandStrategy,
+        container.registerSingleton(MatchController,
             () => () => {
-                this.matchStrategy = this.matchStrategy || createFromFactory(this.container, CommonMatchCommandStrategy);
-                return this.matchStrategy;
+                this.matchController = this.matchController || createFromFactory(this.container, BasicMatchController);
+                return this.matchController;
             });
 
-    }
-
-    get options() {
-        return this.match.options || {};
     }
 
     get matchSetOptions() {
@@ -107,4 +103,4 @@ class PlayableMatchServices {
 
 }
 
-export {PlayableMatchServices};
+export {PlayableServices};

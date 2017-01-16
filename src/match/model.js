@@ -165,7 +165,6 @@ class Opponent extends PlayerRefs {
         this.value.id = id;
     }
 
-
     get id() {
         return this.value.id;
     }
@@ -201,7 +200,7 @@ class Opponents extends MatchComponent {
     }
 
     findPlayerRef(id) {
-        return [...this.players()].reduce((acc, value)=>value.id === id ? value : acc);
+        return [...this.players()].find((player)=>player.id === id)
     }
 
     findOpponent(id) {
@@ -212,7 +211,6 @@ class Opponents extends MatchComponent {
                 return this.second;
         }
     }
-
 }
 
 const _sets = new WeakMap();
@@ -224,7 +222,6 @@ class Match extends MatchComponent {
     constructor(value, options) {
         super(undefined, undefined, value || {options: options || {}});
         _sets.set(this, new MatchSets(this, this.initArray('sets')));
-        // _players.set(this, new Players(this, this.initObj('players')));
         _servers.set(this, new Servers(this, this.initObj('servers')));
         _opponents.set(this, new Opponents(this, this.initObj('opponents')));
         this.initValue('scores', [0, 0]);
@@ -239,8 +236,8 @@ class Match extends MatchComponent {
         const players = this.options.players || [];
         const playerCount = MatchOptions.playerCount(this.options);
 
-        if (players.length < playerCount) {
-            throw new Error(`Not enough players.  ${playerCount} are required. ${players.length} are provided.`)
+        if (players.length < playerCount || players.length > playerCount) {
+            throw new Error(`Incorrect player count. ${playerCount} are required. ${players.length} are provided.`)
         }
 
         const map = new Map();

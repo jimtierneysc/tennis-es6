@@ -3,14 +3,15 @@
  */
 
 import {expect} from 'chai';
-import {Match} from '../../src/match/entity';
+import {Match} from '../../src/match/model'
+import {MatchOptions} from '../../src/match/options'
 
 function createMatch() {
-  return new Match(undefined, {players: [{id: 1}, {id: 2}]})
+    return new Match(undefined, {players: [{id: 1}, {id: 2}]})
 
 }
 
-describe('Match', () => {
+describe('Match-model', () => {
 
     const listNames = ['sets', 'games'];
 
@@ -59,6 +60,73 @@ describe('Match', () => {
 
         it('should have sets', () => {
             expect(match.sets).to.exist;
+        });
+
+    });
+
+    describe('invalid players', () => {
+        describe('not enough players', () => {
+            describe('zero', () => {
+                const options = {
+                    kind: MatchOptions.kind.singles,
+                    players: []
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+            describe('undefined', () => {
+                const options = {
+                    kind: MatchOptions.kind.singles
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+            describe('singles', () => {
+                const options = {
+                    kind: MatchOptions.kind.singles,
+                    players: [{id: 1}]
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+            describe('doubles', () => {
+                const options = {
+                    kind: MatchOptions.kind.doubles,
+                    players: [{id: 1}, {id: 2}, {id: 3}]
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+        });
+
+        describe('too many players', () => {
+            describe('singles', () => {
+                const options = {
+                    kind: MatchOptions.kind.singles,
+                    players: [{id: 1}, {id: 2}, {id: 3}]
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+            describe('doubles', () => {
+                const options = {
+                    kind: MatchOptions.kind.doubles,
+                    players: [{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}]
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+        });
+
+        describe('duplicate players', () => {
+            describe('singles', () => {
+                const options = {
+                    kind: MatchOptions.kind.singles,
+                    players: [{id: 1}, {id: 1}]
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
+            describe('doubles', () => {
+                const options = {
+                    kind: MatchOptions.kind.doubles,
+                    players: [{id: 1}, {id: 2}, {id: 3}, {id: 1}]
+                };
+                expect(()=>new Match(undefined, options)).to.throw(Error);
+            });
         });
 
     });

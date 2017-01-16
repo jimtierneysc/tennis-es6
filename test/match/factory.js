@@ -16,9 +16,9 @@ describe('factories', () => {
     it('should have new match factory', () => {
         expect(createNewMatch).to.exist
     });
-    it('should have value match factory', () => {
-        expect(createMatchFromValue).to.exist
-    });
+    // it('should have value match factory', () => {
+    //     expect(createMatchFromValue).to.exist
+    // });
 });
 
 describe('playableMatch', () => {

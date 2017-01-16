@@ -7,7 +7,7 @@ import {CommandDecorator} from '../../match/command-decorator'
 import {CommandTitleDecorator} from '../../match/command-title-decorator'
 import {MatchHistory} from '../../match/history'
 import {MatchHistoryList} from '../../match/history-list'
-import {Match, MatchSet, SetGame} from '../../match/entity'
+import {Match, MatchSet, SetGame} from '../../match/model'
 import {createFromFactory} from '../../match/di-util'
 import {MatchOptions} from '../../match/options'
 
@@ -93,7 +93,7 @@ function play() {
             });
             observable.subscribeWinner((entity) => {
                 const entityName = this.entityTitle(entity);
-                const name = playable.opponentNameService.getWinnerName(entity.winnerId);
+                const name = playable.opponentNameService.getOpponentName(entity.winnerId);
                 this.messages.push(`${entityName}.winner = ${name}`);
             });
         }

@@ -3,7 +3,7 @@
 import {Container} from 'aurelia-dependency-injection';
 import {CommandDecorator} from './command-decorator'
 import {OpponentNameService, PlayerNameService} from './name-service'
-import {createFromFactory} from './di-util'
+import {createFromFactory, makeOptional} from './di-util'
 import 'aurelia-polyfills';
 
 
@@ -16,7 +16,7 @@ class DecorateStartWarmup {
 
 class DecorateStartPlay {
     static inject() {
-        return [PlayerNameService];
+        return makeOptional([PlayerNameService]);
     }
 
     constructor(nameService) {
@@ -24,15 +24,14 @@ class DecorateStartPlay {
     }
 
     decorate(command) {
-        const name = this.nameService.getPlayerName(command.server);
-        command.title = `start play, server: ${name}`;
+        const name = this.nameService ? this.nameService.getPlayerName(command.server) : command.server;command.title = `start play, server: ${name}`;
     }
 
 }
 
 class DecorateWinGame {
     static inject() {
-        return [OpponentNameService];
+        return makeOptional([OpponentNameService]);
     }
 
     constructor(nameService) {
@@ -40,14 +39,14 @@ class DecorateWinGame {
     }
 
     decorate(command) {
-        const name = this.nameService.getOpponentName(command.winnerId);
+        const name = this.nameService ? this.nameService.getOpponentName(command.winnerId) : command.winnerId;
         command.title = `win game[${command.setGame.index}], winner: ${name}`;
     }
 }
 
 class DecorateWinSetTiebreak {
     static inject() {
-        return [OpponentNameService];
+        return makeOptional([OpponentNameService]);
     }
 
     constructor(nameService) {
@@ -55,14 +54,14 @@ class DecorateWinSetTiebreak {
     }
 
     decorate(command) {
-        const name = this.nameService.getOpponentName(command.winnerId);
+        const name = this.nameService ? this.nameService.getOpponentName(command.winnerId) : command.winnerId;
         command.title = `win set[${command.matchSet.index}] tiebreak, winner ${name}`;
     }
 }
 
 class DecorateWinMatchTiebreak {
     static inject() {
-        return [OpponentNameService];
+        return makeOptional([OpponentNameService]);
     }
 
     constructor(nameService) {
@@ -70,14 +69,14 @@ class DecorateWinMatchTiebreak {
     }
 
     decorate(command) {
-        const name = this.nameService.getOpponentName(command.winnerId);
+        const name = this.nameService ? this.nameService.getOpponentName(command.winnerId) : command.winnerId;
         command.title = `win match tiebreak, winner: ${name}`;
     }
 }
 
 class DecorateStartGame {
     static inject() {
-        return [PlayerNameService];
+        return makeOptional([PlayerNameService]);
     }
 
     constructor(nameService) {
@@ -87,7 +86,7 @@ class DecorateStartGame {
     decorate(command) {
         let title = `start game[${command.matchSet.games.count}]`;
         if (command.server) {
-            let name = this.nameService.getPlayerName(command.server);
+            let name = this.nameService ? this.nameService.getPlayerName(command.server) : command.server;
             title = `${title}, server: ${name}`
         }
         command.title = title;
@@ -151,7 +150,7 @@ class CommandTitleDecorator extends CommandDecorator {
     };
 
     static inject() {
-        return [Container];
+        return makeOptional([Container]);
     }
 
     constructor(container) {

@@ -1,6 +1,6 @@
 'use strict';
 import {MatchHistory} from './history'
-import {Optional} from 'aurelia-dependency-injection';
+import {makeOptional} from './di-util';
 import 'aurelia-polyfills';
 
 const _undoStack = new WeakMap();
@@ -9,7 +9,7 @@ const _history = new WeakMap();
 class MatchCommandInvoker {
 
     static inject() {
-        return [Optional.of(MatchHistory)];
+        return makeOptional([MatchHistory]);
     }
     constructor(history) {
         _history.set(this, history);

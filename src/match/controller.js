@@ -5,177 +5,27 @@ import {
     StartMatchTiebreak, WinMatchTiebreak,
     StartGame, WinGame
 } from './command';
+import {ServingStrategy} from './serving'
 
-import {Match, MatchSet, SetGame} from './entity'
+import {Match, MatchSet, SetGame} from './model'
 import {MatchOptions} from './options'
 import {Container} from 'aurelia-dependency-injection';
 import 'aurelia-polyfills';
 import {createCommand} from './command-factory'
+import {makeOptional} from './di-util'
 
-class OnWinnerStrategy {
-    static inject() {
-        return [Match, SetCommandStrategy, MatchCommandStrategy];
-    }
+class MatchController {
 
-    constructor(match, setStrategy, matchStrategy) {
-        this.setStrategy = setStrategy; // function
-        this.matchStrategy = matchStrategy;
-        this.onWinner = (entity) => this._onWinner(entity);
-        this.matchObservable = match.observable;
-        this.matchObservable.subscribeWinner(this.onWinner);
-    }
-
-    dispose() {
-        this.matchObservable.unSubscribeWinner(this.onWinner);
-    }
-
-    _onWinner(entity) {
-        if (entity instanceof SetGame)
-            this.setStrategy().onWinGame(entity);
-        else if (entity instanceof MatchSet)
-            this.matchStrategy().onWinSet(entity);
-    }
 }
 
-class ServingStrategy {
-}
-
-class CommonServingStrategy extends ServingStrategy {
+class BasicMatchController extends MatchController {
     static inject() {
-        return [Match];
+        return makeOptional([Container, Match, MatchSetController, ServingStrategy]);
     }
 
-    constructor(match) {
+    constructor(container, match, matchSetController, servingStrategy) {
         super();
-        this.opponents = match.opponents;
-        this.servers = match.servers;
-    }
-
-    get knowServingOrder() {
-        return this.servers.players.count >= this._opponentPlayerCount / 2;
-    }
-
-    get lastServerId() {
-        return this.servers.value.lastServerId;
-
-    }
-
-    set _lastServerId(id) {
-        this.servers.value.lastServerId = id;
-    }
-
-    * serverChoices() {
-        if (!this.knowServingOrder) {
-            for (let opponent of this.opponents) {
-                if (!this._hasOpponentServed(opponent)) {
-                    yield* opponent.players;
-                }
-            }
-        }
-    }
-
-    removeLastServer() {
-        this.servers.players.removeLast();
-        this._updateServingOrder()
-    }
-
-    newServer(playerId) {
-        if (!playerId) {
-            if (!this.knowServingOrder) {
-                throw new Error('player must be specified');
-            }
-            this._lastServerId = this._nextServerId;
-        }
-        else if (!this.knowServingOrder) {
-            if (this._hasPlayerServed(playerId)) {
-                throw new Error('player serving out of order')
-            }
-            this.servers.players.add().id = playerId;
-            this._lastServerId = playerId;
-            this._updateServingOrder();
-        }
-    }
-
-    get _opponentPlayerCount() {
-        return [...this.opponents.first.players].length + [...this.opponents.second.players].length;
-    }
-
-    _hasPlayerServed(player) {
-        return this.servers.players.containsValue({id: player.id});
-    }
-
-    _hasOpponentServed(opponent) {
-        for (let player of opponent.players) {
-            if (this._hasPlayerServed(player)) {
-                return true;
-            }
-        }
-    }
-
-    _updateServingOrder() {
-        // Once the half the players have served, the serving is calculated
-        if (this.knowServingOrder) {
-            const playerId = this.servers.players.last.id;
-            const servingOrder = [...this.servers.players].map((value) => value.id);
-            let opponent = this._opponentOfPlayer(playerId);
-            while (servingOrder.length < this._opponentPlayerCount) {
-                opponent = this._nextOpponent(opponent);
-                for (let player of opponent.players) {
-                    if (servingOrder.indexOf(player.id) < 0)
-                        servingOrder.push(player.id);
-                }
-            }
-            this.servers.servingOrder = servingOrder;
-        } else {
-            this.servers.servingOrder = undefined;
-        }
-    }
-
-    _opponentOfPlayer(playerId) {
-        for (let opponent of this.opponents) {
-            if (opponent.players.containsValue({id: playerId})) {
-                return opponent;
-            }
-        }
-    }
-
-    _nextOpponent(opponent) {
-        return (opponent === this.opponents.first) ? this.opponents.second : this.opponents.first;
-    }
-
-    get _nextServerId() {
-        if (!this.knowServingOrder) {
-            throw new Error('next server not known');
-        }
-        let next;
-        let players = this.servers.servingOrder;
-        let last = this.lastServerId;
-        if (!last)
-            return players[0];
-        for (let i = 0; i < players.length; i++) {
-            if (players[i] === last) {
-                next = i + 1;
-                break;
-            }
-        }
-        if (next)
-            return players[next % players.length];
-    }
-}
-
-
-class MatchCommandStrategy {
-
-}
-
-class CommonMatchCommandStrategy extends MatchCommandStrategy {
-    static inject() {
-        return [Container, Match, SetCommandStrategy, ServingStrategy];
-    }
-
-    constructor(container, match, matchSetCommandStrategy, servingStrategy) {
-        super();
-        this.matchSetCommandStrategy = matchSetCommandStrategy; // function
+        this.matchSetController = matchSetController; // function
         this.match = match;
         this.container = container;
         this.servingStrategy = servingStrategy;
@@ -208,17 +58,17 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
 
     startPlay(server) {
         new MatchSet(this.match.sets, {});
-        return this.matchSetCommandStrategy().startGame(server);
+        return this.matchSetController().startGame(server);
     }
 
     undoStartPlay(server) {
-        this.matchSetCommandStrategy().undoStartGame(server);
+        this.matchSetController().undoStartGame(server);
         this.match.sets.removeLast();
     }
 
     startSet() {
         new MatchSet(this.match.sets);
-        return this.matchSetCommandStrategy().startGame();
+        return this.matchSetController().startGame();
     }
 
     undoStartSet() {
@@ -228,7 +78,7 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
     startMatchTiebreak() {
         new MatchSet(this.match.sets);
         // TODO: Match set strategy should be tiebreak specific
-        let result = this.matchSetCommandStrategy().startGame();
+        let result = this.matchSetController().startGame();
         result.matchTiebreak = true;
     }
 
@@ -295,13 +145,13 @@ class CommonMatchCommandStrategy extends MatchCommandStrategy {
     }
 }
 
-class SetCommandStrategy {
+class MatchSetController {
 
 }
 
-class CommonSetCommandStrategy extends SetCommandStrategy {
+class BasicMatchSetController extends MatchSetController {
     static inject() {
-        return [Container, Match, ServingStrategy];
+        return makeOptional([Container, Match, ServingStrategy]);
     }
 
     constructor(container, match, servingStrategy, options) {
@@ -410,14 +260,14 @@ class CommonSetCommandStrategy extends SetCommandStrategy {
     }
 }
 
-class GameCommandStrategy {
+class SetGameController {
 
 }
 
-class CommonGameCommandStrategy extends GameCommandStrategy {
+class BasicSetGameController extends SetGameController {
 
     static inject() {
-        return [Container, Match];
+        return makeOptional([Container, Match]);
     }
 
     constructor(container, match) {
@@ -450,10 +300,34 @@ class CommonGameCommandStrategy extends GameCommandStrategy {
     }
 }
 
+class MatchControllerEvents {
+    static inject() {
+        return makeOptional([Match, MatchSetController, MatchController]);
+    }
+
+    constructor(match, matchSetController, matchController) {
+        this.matchSetController = matchSetController; // function
+        this.matchController = matchController; // function
+        this.onWinner = (entity) => this._onWinner(entity);
+        this.matchObservable = match.observable;
+        this.matchObservable.subscribeWinner(this.onWinner);
+    }
+
+    dispose() {
+        this.matchObservable.unSubscribeWinner(this.onWinner);
+    }
+
+    _onWinner(entity) {
+        if (entity instanceof SetGame)
+            this.matchSetController().onWinGame(entity);
+        else if (entity instanceof MatchSet)
+            this.matchController().onWinSet(entity);
+    }
+}
+
 export {
-    MatchCommandStrategy, CommonMatchCommandStrategy,
-    SetCommandStrategy, CommonSetCommandStrategy,
-    GameCommandStrategy, CommonGameCommandStrategy,
-    ServingStrategy, CommonServingStrategy,
-    OnWinnerStrategy
+    MatchController, BasicMatchController,
+    MatchSetController, BasicMatchSetController,
+    SetGameController, BasicSetGameController,
+    MatchControllerEvents
 }

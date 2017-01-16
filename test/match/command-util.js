@@ -176,10 +176,10 @@ class Utils {
         });
     };
 
-    static makeMatch(options) {
+    static makeMatch(options, register) {
         options = options || {kind: MatchOptions.kind.singles};
         Utils.addPlayers(options);
-        return createPlayableMatch(createNewMatch(options));
+        return createPlayableMatch(createNewMatch(options), register);
     }
 
     static testParams = [

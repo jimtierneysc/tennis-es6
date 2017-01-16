@@ -1,11 +1,15 @@
 'use strict';
 import {UndoOperation, StartOver} from './command'
-import {Match} from './entity';
+import {Match} from './model';
 import {MatchHistory} from './history';
 import {MatchCommandInvoker} from './command-invoker'
-import {MatchCommandStrategy, GameCommandStrategy, SetCommandStrategy, ServingStrategy} from './strategy'
+import {MatchController, SetGameController, MatchSetController} from './controller'
+import {ServingStrategy} from './serving'
 import {PlayerNameService, OpponentNameService} from './name-service'
 import {createCommand} from './command-factory'
+import {
+    Optional
+} from 'aurelia-dependency-injection';
 
 class PlayableMatch {
 
@@ -14,39 +18,39 @@ class PlayableMatch {
     }
 
     get match() {
-        return this.container.get(Match);
+        return this.optionalOf(Match);
     }
 
     get commandInvoker() {
-        return this.container.get(MatchCommandInvoker);
+        return this.optionalOf(MatchCommandInvoker);
     }
 
-    get matchCommandStrategy() {
-        return this.container.get(MatchCommandStrategy)();
+    get matchController() {
+        return this.optionalOf(MatchController)();
     }
 
-    get setGameCommandStrategy() {
-        return this.container.get(GameCommandStrategy)();
+    get setGameController() {
+        return this.optionalOf(SetGameController)();
     }
 
-    get matchSetCommandStrategy() {
-        return this.container.get(SetCommandStrategy)();
+    get matchSetController() {
+        return this.optionalOf(MatchSetController)();
     }
 
     get servingStrategy() {
-        return this.container.get(ServingStrategy)();
+        return this.optionalOf(ServingStrategy)();
     }
 
     get history() {
-        return this.container.get(MatchHistory);
+        return this.optionalOf(MatchHistory);
     }
 
     get playerNameService() {
-        return this.container.get(PlayerNameService);
+        return this.optionalOf(PlayerNameService);
     }
 
     get opponentNameService() {
-        return this.container.get(OpponentNameService);
+        return this.optionalOf(OpponentNameService);
     }
 
     *otherCommands() {
@@ -54,7 +58,7 @@ class PlayableMatch {
             yield createCommand(this.container, UndoOperation);
         }
 
-        if (this.matchCommandStrategy.canStartOver) {
+        if (this.matchController.canStartOver) {
             yield createCommand(this.container, StartOver);
         }
     }
@@ -67,15 +71,19 @@ class PlayableMatch {
     }
 
     matchCommands() {
-        return this.matchCommandStrategy.commands();
+        return this.matchController.commands();
     }
 
     matchSetCommands() {
-        return this.matchSetCommandStrategy.commands();
+        return this.matchSetController.commands();
     }
 
     setGameCommands() {
-        return this.setGameCommandStrategy.commands();
+        return this.setGameController.commands();
+    }
+
+    optionalOf(klass) {
+        return Optional.of(klass).get(this.container);
     }
 
 }

@@ -2,13 +2,14 @@
 'use strict';
 
 import {MatchCommandInvoker} from './command-invoker'
-import {MatchCommandStrategy, SetCommandStrategy, GameCommandStrategy} from './strategy'
+import {MatchController, MatchSetController, SetGameController} from './controller'
+import {makeOptional} from './di-util'
 import 'aurelia-polyfills';
 
 
 class StartWarmup {
     static inject() {
-        return [MatchCommandStrategy];
+        return makeOptional([MatchController]);
     }
     constructor(strategy) {
         this.match = strategy().match;
@@ -19,7 +20,7 @@ class StartWarmup {
 
 class StartPlay  {
     static inject() {
-        return [MatchCommandStrategy];
+        return makeOptional([MatchController]);
     }
     constructor(strategy, server) {
         this.match = strategy().match;
@@ -32,7 +33,7 @@ class StartPlay  {
 
 class WinGame  {
     static inject() {
-        return [SetCommandStrategy, GameCommandStrategy];
+        return makeOptional([MatchSetController, SetGameController]);
     }
     constructor(setStrategy, gameStrategy, winnerId) {
         this.setGame = gameStrategy().game;
@@ -44,7 +45,7 @@ class WinGame  {
 
 class WinSetTiebreak {
     static inject() {
-        return [SetCommandStrategy, GameCommandStrategy];
+        return makeOptional([MatchSetController, SetGameController]);
     }
     constructor(setStrategy, gameStrategy, winnerId) {
         this.matchSet = setStrategy().matchSet;
@@ -56,7 +57,7 @@ class WinSetTiebreak {
 
 class WinMatchTiebreak {
     static inject() {
-        return [SetCommandStrategy, GameCommandStrategy];
+        return makeOptional([MatchSetController, SetGameController]);
     }
     constructor(setStrategy, gameStrategy, winnerId) {
         this.setGame = gameStrategy().game;
@@ -68,7 +69,7 @@ class WinMatchTiebreak {
 
 class StartGame {
     static inject() {
-        return [SetCommandStrategy];
+        return makeOptional([MatchSetController]);
     }
     constructor(strategy, server) {
         this.server = server;
@@ -80,7 +81,7 @@ class StartGame {
 
 class StartSetTiebreak {
     static inject() {
-        return [SetCommandStrategy];
+        return makeOptional([MatchSetController]);
     }
     constructor(strategy) {
         this.matchSet = strategy().matchSet;
@@ -91,7 +92,7 @@ class StartSetTiebreak {
 
 class StartMatchTiebreak {
     static inject() {
-        return [MatchCommandStrategy];
+        return makeOptional([MatchController]);
     }
     constructor(strategy) {
         this.match = strategy().match;
@@ -102,7 +103,7 @@ class StartMatchTiebreak {
 
 class StartSet {
     static inject() {
-        return [MatchCommandStrategy];
+        return makeOptional([MatchController]);
     }
     constructor(strategy) {
         this.match = strategy().match;
@@ -113,7 +114,7 @@ class StartSet {
 
 class UndoOperation {
     static inject() {
-        return [MatchCommandInvoker];
+        return makeOptional([MatchCommandInvoker]);
     }
     constructor(invoker) {
         this.command = invoker.undoableCommand;
@@ -123,7 +124,7 @@ class UndoOperation {
 
 class StartOver {
     static inject() {
-        return [MatchCommandInvoker, MatchCommandStrategy];
+        return makeOptional([MatchCommandInvoker, MatchController]);
     }
 
     constructor(invoker, strategy) {
