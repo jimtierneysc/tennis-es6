@@ -1,1 +1,0 @@
-{"version":3,"sources":["../../src/match/match-command-factory.js"],"names":["ScoreCommandFactory"],"mappings":";;;;;;;;IAEMA,mB","file":"match-command-factory.js","sourcesContent":["\n\nclass ScoreCommandFactory {\n\n\n}\n\n"]}
