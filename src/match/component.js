@@ -73,7 +73,7 @@ class MatchComponentList extends MatchComponent {
 
     removeChild(component) {
         _parent.set(component, undefined);
-        let childList = _childList.get(this);
+        const childList = _childList.get(this);
         const i = childList.indexOf(component);
         if (i >= 0) {
             childList.splice(i, 1);
@@ -102,7 +102,7 @@ class MatchComponentList extends MatchComponent {
     }
 
     get last() {
-        let childList = _childList.get(this);
+        const childList = _childList.get(this);
         const len = childList.length;
         if (len > 0)
             return childList[len - 1];
@@ -131,7 +131,7 @@ class MatchComponentList extends MatchComponent {
     }
 
     containsValue(value) {
-        for (let i of this) {
+        for (const i of this) {
             if (i.isEqualValue(value)) {
                 return true;
             }
@@ -139,7 +139,7 @@ class MatchComponentList extends MatchComponent {
     }
 
     contains(entity) {
-        for (let i of this) {
+        for (const i of this) {
             if (i === entity) {
                 return true;
             }
@@ -148,7 +148,7 @@ class MatchComponentList extends MatchComponent {
 
     indexOf(entity) {
         let index = 0;
-        for (let i of this) {
+        for (const i of this) {
             if (i === entity) {
                 return index;
             }

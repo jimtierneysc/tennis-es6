@@ -91,7 +91,7 @@ class PlayableServices {
     }
 
     get lastGame() {
-        let lastSet = this.lastSet;
+        const lastSet = this.lastSet;
         if (lastSet) {
             return lastSet.games.last;
         }

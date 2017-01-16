@@ -12,5 +12,5 @@ class MatchFactory {
     // }
  }
 
-export let createNewMatch = MatchFactory.createNew;
-export let createMatchFromValue = MatchFactory.createFromValue;
+export const createNewMatch = MatchFactory.createNew;
+export const createMatchFromValue = MatchFactory.createFromValue;

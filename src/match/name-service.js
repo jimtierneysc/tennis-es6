@@ -1,10 +1,8 @@
 'use strict';
 import 'aurelia-polyfills';
 import {Match} from './model'
-import {createFromFactory, makeOptional} from './di-util'
-import {
-    Factory, Optional
-} from 'aurelia-dependency-injection';
+import {makeOptional} from './di-util'
+
 
 const idToName = new Map();
 
@@ -20,7 +18,7 @@ class PlayerNameService {
     }
 
     getPlayerName(playerId) {
-        let player = this.match.opponents.findPlayerRef(playerId);
+        const player = this.match.opponents.findPlayerRef(playerId);
         if (player)
           return this.idToName(player.id);
     }
@@ -46,10 +44,10 @@ class OpponentNameService {
     }
 
     getOpponentName(opponentId) {
-        let opponent = this.match.opponents.findOpponent(opponentId);
+        const opponent = this.match.opponents.findOpponent(opponentId);
         if (opponent) {
-            let players = [...opponent.players];
-            let names = players.map((player) => this.playerNameService ? this.playerNameService.getPlayerName(player.id) : player.id.toString());
+            const players = [...opponent.players];
+            const names = players.map((player) => this.playerNameService ? this.playerNameService.getPlayerName(player.id) : player.id.toString());
             return names.join(' and ');
         }
     }

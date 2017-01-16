@@ -36,7 +36,7 @@ class MatchCommandInvoker {
 
     undo(undoCommand) {
         if (this.canUndo) {
-            let command = this.undoStack.splice(-1);
+            const command = this.undoStack.splice(-1);
             command[0].undo();
             this.addToHistory(undoCommand);
         }
@@ -56,7 +56,7 @@ class MatchCommandInvoker {
 
     get undoableCommand() {
         if (this.canUndo) {
-            let command = this.undoStack[this.undoStack.length - 1];
+            const command = this.undoStack[this.undoStack.length - 1];
             return command;
         }
     }

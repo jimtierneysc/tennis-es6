@@ -35,6 +35,6 @@ class PlayableMatchFactory {
  }
 
 
-export let createPlayableMatch = PlayableMatchFactory.create;
+export const createPlayableMatch = PlayableMatchFactory.create;
 
 

@@ -78,7 +78,7 @@ class BasicMatchController extends MatchController {
     startMatchTiebreak() {
         new MatchSet(this.match.sets);
         // TODO: Match set strategy should be tiebreak specific
-        let result = this.matchSetController().startGame();
+        const result = this.matchSetController().startGame();
         result.matchTiebreak = true;
     }
 
@@ -87,9 +87,9 @@ class BasicMatchController extends MatchController {
     }
 
     _updateScore() {
-        let scores = [0, 0];
+        const scores = [0, 0];
 
-        for (let set of this.match.sets) {
+        for (const set of this.match.sets) {
             if (set.winnerId) {
                 scores[set.winnerId - 1] += 1;
             }
@@ -116,7 +116,7 @@ class BasicMatchController extends MatchController {
 
     _updateWinner(scores) {
         let winningScore;
-        let max = Math.max(...scores);
+        const max = Math.max(...scores);
 
         if (max === this._winThreshold) {
             winningScore = max; // tiebreak
@@ -133,7 +133,7 @@ class BasicMatchController extends MatchController {
             yield createCommand(this.container, StartWarmup);
         }
         if (!this.match.started) {
-            for (let server of this.servingStrategy().serverChoices()) {
+            for (const server of this.servingStrategy().serverChoices()) {
                 yield createCommand(this.container, StartPlay, server.id);
             }
         }
@@ -197,9 +197,9 @@ class BasicMatchSetController extends MatchSetController {
     }
 
     _updateScore(game) {
-        let scores = [0, 0];
+        const scores = [0, 0];
 
-        for (let game of this.matchSet.games) {
+        for (const game of this.matchSet.games) {
             if (game.winnerId) {
                 scores[game.winnerId - 1] += 1;
             }
@@ -212,12 +212,12 @@ class BasicMatchSetController extends MatchSetController {
 
     _updateWinner(game, scores) {
         let winningScore;
-        let max = Math.max(...scores);
-        let min = Math.min(...scores);
+        const max = Math.max(...scores);
+        const min = Math.min(...scores);
         if (game.matchTiebreak && max == 1) {
             winningScore = max
         } else {
-            let winThreshold = MatchOptions.winSetThreshold(this.match.options);
+            const winThreshold = MatchOptions.winSetThreshold(this.match.options);
             if (max === winThreshold + 1 && min === winThreshold) {
                 winningScore = max; // tiebreak
             } else if (max >= winThreshold && max - min >= 2) {
@@ -248,7 +248,7 @@ class BasicMatchSetController extends MatchSetController {
     * commands() {
         if (this._canStartGame) {
             if (!this.servingStrategy().knowServingOrder) {
-                for (let player of this.servingStrategy().serverChoices()) {
+                for (const player of this.servingStrategy().serverChoices()) {
                     yield createCommand(this.container, StartGame, player.id);
                 }
             } else {
@@ -275,7 +275,7 @@ class BasicSetGameController extends SetGameController {
         this.container = container;
         this.opponents = match.opponents;
         this.game = (() => {
-            let lastSet = match.sets.last;
+            const lastSet = match.sets.last;
             if (lastSet)
                 return lastSet.games.last;
         })();
@@ -287,7 +287,7 @@ class BasicSetGameController extends SetGameController {
 
     * commands() {
         if (this.game && !this.game.winnerId) {
-            for (let opponent of this.opponents) {
+            for (const opponent of this.opponents) {
                 if (this.game.setTiebreak)
                     yield createCommand(this.container, WinSetTiebreak, opponent.id);
                 else if (this.game.matchTiebreak)

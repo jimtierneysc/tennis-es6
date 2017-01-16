@@ -243,7 +243,7 @@ class Match extends MatchComponent {
         const map = new Map();
         let opponent = this.opponents.first;
         for (let i = 1; i <= playerCount && i <= players.length; i++) {
-            let player = players[i - 1];
+            const player = players[i - 1];
             if (map.get(player.id)) {
                 throw new Error('Duplicate players not allowed')
             }

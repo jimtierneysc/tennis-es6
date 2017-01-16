@@ -34,7 +34,7 @@ class BasicServingStrategy extends ServingStrategy {
 
     * serverChoices() {
         if (!this.knowServingOrder) {
-            for (let opponent of this.opponents) {
+            for (const opponent of this.opponents) {
                 if (!this._hasOpponentServed(opponent)) {
                     yield* opponent.players;
                 }
@@ -73,7 +73,7 @@ class BasicServingStrategy extends ServingStrategy {
     }
 
     _hasOpponentServed(opponent) {
-        for (let player of opponent.players) {
+        for (const player of opponent.players) {
             if (this._hasPlayerServed(player)) {
                 return true;
             }
@@ -88,7 +88,7 @@ class BasicServingStrategy extends ServingStrategy {
             let opponent = this._opponentOfPlayer(playerId);
             while (servingOrder.length < this._opponentPlayerCount) {
                 opponent = this._nextOpponent(opponent);
-                for (let player of opponent.players) {
+                for (const player of opponent.players) {
                     if (servingOrder.indexOf(player.id) < 0)
                         servingOrder.push(player.id);
                 }
@@ -100,7 +100,7 @@ class BasicServingStrategy extends ServingStrategy {
     }
 
     _opponentOfPlayer(playerId) {
-        for (let opponent of this.opponents) {
+        for (const opponent of this.opponents) {
             if (opponent.players.containsValue({id: playerId})) {
                 return opponent;
             }
@@ -116,8 +116,8 @@ class BasicServingStrategy extends ServingStrategy {
             throw new Error('next server not known');
         }
         let next;
-        let players = this.servers.servingOrder;
-        let last = this.lastServerId;
+        const players = this.servers.servingOrder;
+        const last = this.lastServerId;
         if (!last)
             return players[0];
         for (let i = 0; i < players.length; i++) {

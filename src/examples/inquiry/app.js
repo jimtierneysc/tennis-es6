@@ -15,7 +15,7 @@ import {MatchOptions} from '../../match/options'
 function play() {
 
     // list of player names
-    let players = [];
+    const players = [];
 
     function playerId(name) {
         // provide a unique id for each player name
@@ -130,7 +130,7 @@ function play() {
                     return {
                         questions: this.playerNamesQuestions(),
                         handler: (answers) => {
-                            let options = this.matchOptions;
+                            const options = this.matchOptions;
                             options.players = [];
                             this.playerNameFields.forEach((name)=>{
                                 const player = {id: playerId(answers[name])};
@@ -227,7 +227,7 @@ function play() {
                         rootMenu = true;
                         break;
                     case modes.playMenu:
-                        for (let c of this.playable.allCommands()) {
+                        for (const c of this.playable.allCommands()) {
                             commandMap.set(c.title, () => this.playable.commandInvoker.invoke(c));
                         }
                         break;
