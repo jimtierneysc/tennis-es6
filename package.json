@@ -6,14 +6,13 @@
     "lint": "eslint src",
     "compile": "babel --source-maps -d lib/ src/",
     "compile:watch": "babel --watch --source-maps -d lib/ src/",
-    "run": "babel-node $NODE_DEBUG_OPTION src/examples/inquiry/app.js",
+    "app": "babel-node $NODE_DEBUG_OPTION src/examples/inquiry/app.js",
     "test": "mocha --recursive --compilers js:babel-register",
     "test:watch": "mocha --recursive --compilers js:babel-register --reporter min --watch",
     "test:cover": "babel-node ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha -- --recursive",
     "test:opencover": "open coverage/lcov-report/index.html"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.45",
     "babel-cli": "^6.18.0",
     "babel-core": "^6.20.0",
     "babel-plugin-transform-runtime": "^6.15.0",
@@ -26,15 +25,6 @@
     "eslint": "^3.12.1",
     "eslint-config-airbnb-base": "^11.0.0",
     "eslint-plugin-import": "^2.2.0"
-  },
-  "xxbabel": {
-    "presets": [
-      "latest",
-      "stage-0"
-    ],
-    "plugins": [
-      "transform-runtime"
-    ]
   },
   "dependencies": {
     "aurelia-dependency-injection": "^1.2.1",
