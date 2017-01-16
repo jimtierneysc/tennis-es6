@@ -4,10 +4,6 @@ import {
 } from 'events';
 
 class MatchObservable {
-    static events = {
-        changeScores: 'changeScores',
-        changeWinner: 'changeWinner'
-    };
 
     constructor() {
         this._emitter = new EventEmitter();
@@ -47,6 +43,12 @@ class MatchObservable {
 
     }
 }
+
+MatchObservable.events = {
+    changeScores: 'changeScores',
+    changeWinner: 'changeWinner'
+};
+
 
 export {MatchObservable};
 

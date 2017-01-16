@@ -2,7 +2,7 @@
 
 // Interface
 class MatchHistory {
-    addCommand(command) {
+    addCommand(command) {  // eslint-disable-line no-unused-vars
     }
 }
 

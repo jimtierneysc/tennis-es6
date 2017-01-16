@@ -1,22 +1,6 @@
 'use strict';
 
 class MatchOptions {
-    static scoring = {
-        eightGameProSet: 'eight-game-pro-set',
-        twoSetsTenPoint: 'two-sets-ten-point-tiebreak',
-        threeSets: 'three-sets'
-    };
-
-    static kind = {
-        doubles: 'doubles',
-        singles: 'singles'
-    };
-
-    static kinds = [MatchOptions.kind.singles, MatchOptions.kind.doubles];
-
-    static scorings = [MatchOptions.scoring.eightGameProSet, MatchOptions.scoring.twoSetsTenPoint, MatchOptions.scoring.threeSets]
-
-    static players = 'players';
 
     static playerCount(options) {
         return MatchOptions.doublesKind(options) ? 4 : 2;
@@ -38,5 +22,21 @@ class MatchOptions {
         return options.scoring === MatchOptions.scoring.twoSetsTenPoint ? true : false;
     }
 }
+MatchOptions.scoring = {
+    eightGameProSet: 'eight-game-pro-set',
+    twoSetsTenPoint: 'two-sets-ten-point-tiebreak',
+    threeSets: 'three-sets'
+};
+
+MatchOptions.kind = {
+    doubles: 'doubles',
+    singles: 'singles'
+};
+
+MatchOptions.kinds = [MatchOptions.kind.singles, MatchOptions.kind.doubles];
+
+MatchOptions.scorings = [MatchOptions.scoring.eightGameProSet, MatchOptions.scoring.twoSetsTenPoint, MatchOptions.scoring.threeSets]
+
+MatchOptions.players = 'players';
 
 export {MatchOptions}

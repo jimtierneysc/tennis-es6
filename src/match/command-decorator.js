@@ -8,7 +8,7 @@ import 'aurelia-polyfills';
 class CommandDecorator {
 
     // Add properties to a command
-    decorate(command) {
+    decorate(command) {  // eslint-disable-line no-unused-vars
 
     }
 }

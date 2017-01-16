@@ -86,7 +86,7 @@ class DecorateStartGame {
     decorate(command) {
         let title = `start game[${command.matchSet.games.count}]`;
         if (command.server) {
-            let name = this.nameService ? this.nameService.getPlayerName(command.server) : command.server;
+            const name = this.nameService ? this.nameService.getPlayerName(command.server) : command.server;
             title = `${title}, server: ${name}`
         }
         command.title = title;
@@ -127,8 +127,6 @@ class DecorateStartOver {
 
 class CommandTitleDecorator extends CommandDecorator {
 
-    static map;
-
     classLookup(klass) {
         if (!CommandTitleDecorator.map) {
             const map = new Map();
@@ -147,7 +145,7 @@ class CommandTitleDecorator extends CommandDecorator {
             CommandTitleDecorator.map = map;
         }
         return CommandTitleDecorator.map.get(klass);
-    };
+    }
 
     static inject() {
         return makeOptional([Container]);

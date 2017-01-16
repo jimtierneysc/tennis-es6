@@ -10,8 +10,8 @@ import {MatchHistoryList} from '../../match/history-list'
 import {Match, MatchSet, SetGame} from '../../match/model'
 import {createFromFactory} from '../../match/di-util'
 import {MatchOptions} from '../../match/options'
-
-
+/*eslint no-console: "off"*/
+/*global console */
 function play() {
 
     // list of player names
@@ -107,12 +107,13 @@ function play() {
         createRequest() {
             switch (this.mode) {
                 case modes.mainMenu:
-                case modes.playMenu:
+                case modes.playMenu: {
                     const commandMap = new Map();
                     return {
                         questions: this.menuQuestions(commandMap),
                         handler: (answers, quit) => commandMap.get(answers.command)(quit)
                     };
+                }
                 case modes.matchKind:
                     return {
                         questions: this.matchKindQuestions(),
