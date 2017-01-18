@@ -6,6 +6,11 @@ import {OpponentNameService, PlayerNameService} from './name-service'
 import {createFromFactory, makeOptional} from './di-util'
 import 'aurelia-polyfills';
 
+/**
+ * Command title decorators
+ *
+ * Add a title property to specific command classes.
+ */
 
 class DecorateStartWarmup {
 

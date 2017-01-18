@@ -12,6 +12,12 @@ import {createFromFactory} from '../../match/di-util'
 import {MatchOptions} from '../../match/options'
 /*eslint no-console: "off"*/
 /*global console */
+
+/**
+ * Command line application to score a tennis match.
+ */
+
+
 function play() {
 
     // list of player names
@@ -57,8 +63,9 @@ function play() {
             return name;
         }
 
+        // Create a match model and services to "play" the match.
         createMatch() {
-            // create match entity
+            // create match model
             const match = createNewMatch(this.matchOptions);
             // create services to play match
             const playable = createPlayableMatch(match, this.matchRegister);
@@ -68,22 +75,25 @@ function play() {
             return playable;
         }
 
+        // Register services with the DI container
         matchRegister(container) {
             // Add optional services
 
             // Keep history of executed commands
             container.registerInstance(MatchHistory, createFromFactory(container, MatchHistoryList));
 
-            // Add name services to provide player names from id
+            // Add name services to provide player names from player id
             const playerNameService = createFromFactory(container, PlayerNameService);
             playerNameService.idToName = (id) => players[id - 1];
             container.registerInstance(PlayerNameService, playerNameService);
             container.registerInstance(OpponentNameService, createFromFactory(container, OpponentNameService));
 
-            // Decorate commands with title
+            // Decorate commands with a title.  Title is used by this app in two ways.
+            // 1) To describe commands to execute. 2) To display a meaningful command history.
             container.registerInstance(CommandDecorator, createFromFactory(container, CommandTitleDecorator));
         }
 
+        // Subscribe to events.  Create a user message when an event occurs.
         subscribe(playable) {
             // event handlers
             const observable = playable.match.observable;
@@ -98,12 +108,14 @@ function play() {
             });
         }
 
+        // Show command history
         showHistory() {
             for (const item of this.playable.history.list) {
                 this.messages.push(item.title);
             }
         }
 
+        // Create an object that includes the question to display to the user, and a function to handle to the answer
         createRequest() {
             switch (this.mode) {
                 case modes.mainMenu:
@@ -158,6 +170,7 @@ function play() {
             }
         }
 
+        // Prompt for new match kind (e.g.; doubles or singles)
         matchKindQuestions() {
             const result = {
                 type: 'rawlist',
@@ -168,6 +181,7 @@ function play() {
             return result;
         }
 
+        // Prompt for new match scoring (e.g.; one set, two sets, three sets)
         matchScoringQuestions() {
             const result = {
                 type: 'rawlist',
@@ -187,6 +201,7 @@ function play() {
             return result;
         }
 
+        // Prompt for player names to play a new match
         playerNamesQuestions() {
             const result = [];
             this.playerNameFields.forEach((name, i)=> {
@@ -207,6 +222,7 @@ function play() {
             return result;
         }
 
+        // Prompt use to pick from a list of choices
         menuQuestions(commandMap) {
             const result = {
                 type: 'rawlist',
@@ -219,6 +235,7 @@ function play() {
                 commandMap.clear();
                 switch (this.mode) {
                     case modes.mainMenu:
+                        // Main menu choices
                         if (this.playable) {
                             commandMap.set('play', () => this.mode = modes.playMenu);
                             commandMap.set('history', () => this.showHistory());
@@ -228,6 +245,7 @@ function play() {
                         rootMenu = true;
                         break;
                     case modes.playMenu:
+                        // Match command choices
                         for (const c of this.playable.allCommands()) {
                             commandMap.set(c.title, () => this.playable.commandInvoker.invoke(c));
                         }
@@ -248,6 +266,7 @@ function play() {
             return result;
         }
 
+        // Prompt the user until the "quit" option is selected
         promptLoop(resolve) {
             const request = this.createRequest();
             inquirer.prompt(request.questions).then((answers) => {
@@ -271,8 +290,8 @@ function play() {
         }
 
         play() {
-            const promise = new Promise((resolve) => this.promptLoop(resolve));
-            return promise;
+            // Create a promise that will be resolved when the user chooses to quit
+            return new Promise((resolve) => this.promptLoop(resolve));
         }
 
     }
@@ -280,6 +299,7 @@ function play() {
 
 }
 
+// Run the UI.
 play().then(
     (value) => console.log(value),
     (error) => console.log(error)

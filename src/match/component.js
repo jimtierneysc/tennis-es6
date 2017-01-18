@@ -1,7 +1,16 @@
 'use strict';
 import * as _ from 'lodash'
 
-// Containers for hidden and read-only properties
+/**
+ * Base classes for the match model
+ *
+ * These classes are responsible for owner/parent/child relationships
+ * between match entities.
+ *
+ * Each class has a value property, which has the serializable JSON representation of the entity.
+ */
+
+// containers for read only properties
 const _childList = new WeakMap();
 const _owner = new WeakMap();
 const _parent = new WeakMap();

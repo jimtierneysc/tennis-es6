@@ -3,6 +3,15 @@ import {MatchHistory} from './history'
 import {makeOptional} from './di-util';
 import 'aurelia-polyfills';
 
+/**
+ * Command Invoker
+ *
+ * Invoke a command or undo a command.  If the MatchHistory service is available,
+ * add the command to history.
+ */
+
+
+// containers for read only properties
 const _undoStack = new WeakMap();
 const _history = new WeakMap();
 

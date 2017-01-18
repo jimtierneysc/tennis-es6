@@ -2,7 +2,9 @@
 import {MatchHistory} from './history';
 import {MatchComponentList, MatchComponent} from './component'
 
-// Implementation of MatchHistory
+/**
+ * Implementation of MatchHistory
+ */
 
 class MatchHistoryList extends MatchHistory {
 
@@ -12,9 +14,8 @@ class MatchHistoryList extends MatchHistory {
     }
 
     addCommand(command) {
-        const result = new MatchHistoryCommandItem(this.list);
-        result.saveCommand(command);
-        return result;
+        const item = new MatchHistoryCommandItem(this.list);
+        item.saveCommand(command);
     }
 
     get list() {

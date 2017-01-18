@@ -5,9 +5,17 @@ import {Match} from './model';
 import {PlayableServices} from './playable-services';
 import {createFromFactory} from './di-util'
 
-
+/**
+ * Factory for creating a PlayableMatch
+ */
 class PlayableMatchFactory {
 
+    /**
+     * Creates a PlayableMatch.
+     * @param match The Match model.
+     * @param register The callback for registering optional services in the DI container.
+     * @return The instance.
+     */
     static create(match, register) {
 
         // DI container

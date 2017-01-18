@@ -3,6 +3,16 @@ import {MatchObservable} from './observable';
 import {MatchComponent, MatchComponentList} from './component';
 import {MatchOptions} from './options'
 
+/**
+ * Match model.
+ * A Match contains a list of MatchSet.
+ * MatchSet contains a list of SetGame.
+ * A Match has two opponents.
+ * An Opponent has references to player id(s).
+ * Match, MatchSet and SetGame may have a winning opponent.
+ * Match and MatchSet have a score.
+ */
+
 class SetGame extends MatchComponent {
 
     constructor(parent, value) {

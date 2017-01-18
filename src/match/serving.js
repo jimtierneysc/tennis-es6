@@ -5,6 +5,11 @@ import {Match} from './model'
 import 'aurelia-polyfills';
 import {makeOptional} from './di-util'
 
+/**
+ * ServingStategy is responsible for managing the order in which players
+ * serve in a Match.
+ */
+
 class ServingStrategy {
 }
 
