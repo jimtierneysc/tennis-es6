@@ -11,6 +11,11 @@ import {
     Optional
 } from 'aurelia-dependency-injection';
 
+/**
+ * PlayableMatch creates the services to "play" a match by modifying the Match model.
+ * Services include controllers to provide commands
+ * that operate on a match, and an invoker to execute commands.
+ */
 class PlayableMatch {
 
     constructor(container) {

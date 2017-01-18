@@ -3,6 +3,11 @@ import {
     EventEmitter
 } from 'events';
 
+/**
+ * Service to manage events indicating a change to a Match, MatchSet or
+ * SetGame.
+ */
+
 class MatchObservable {
 
     constructor() {

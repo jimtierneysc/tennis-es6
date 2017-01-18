@@ -14,6 +14,14 @@ import 'aurelia-polyfills';
 import {createCommand} from './command-factory'
 import {makeOptional} from './di-util'
 
+/**
+ * Match controllers
+ *
+ * Controllers are responsible for creating the commands which may operate on a match.
+ *
+ * Controllers are responsible for making changes to the match model when commands are executed or undone.
+ */
+
 class MatchController {
 
 }

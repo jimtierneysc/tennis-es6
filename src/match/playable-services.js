@@ -15,6 +15,10 @@ import {
 } from 'aurelia-dependency-injection'
 import 'aurelia-polyfills'
 
+/**
+ * Manage services needed by a PlayableMatch, such as the command invoker
+ * and controllers
+ */
 class PlayableServices {
 
     static inject() {
@@ -26,7 +30,7 @@ class PlayableServices {
         this.match = match;
         this.servingStrategy = undefined;
         this.matchController = undefined;
-        this.gameStrategy = undefined;
+        this.setGameController = undefined;
         this.matchSetController = undefined;
         this.onWinnerStrategy = undefined;
     }
@@ -54,11 +58,11 @@ class PlayableServices {
             });
         container.registerHandler(SetGameController,
             () => () => {
-                if (this.gameStrategy && this.gameStrategy.game != this.lastGame) {
-                    this.gameStrategy = undefined;
+                if (this.setGameController && this.setGameController.game != this.lastGame) {
+                    this.setGameController = undefined;
                 }
-                this.gameStrategy = this.gameStrategy || createFromFactory(this.container, BasicSetGameController);
-                return this.gameStrategy;
+                this.setGameController = this.setGameController || createFromFactory(this.container, BasicSetGameController);
+                return this.setGameController;
             });
         container.registerHandler(MatchSetController,
             () => () => {

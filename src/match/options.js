@@ -1,5 +1,9 @@
 'use strict';
 
+/**
+ * Static methods and values for reading or writing Match options.
+ */
+
 class MatchOptions {
 
     static playerCount(options) {

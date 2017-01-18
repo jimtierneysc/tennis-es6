@@ -1,4 +1,3 @@
-// import {MatchStrategy} from './match-commandStrategy'
 'use strict';
 
 import {MatchCommandInvoker} from './command-invoker'
@@ -6,6 +5,12 @@ import {MatchController, MatchSetController, SetGameController} from './controll
 import {makeOptional} from './di-util'
 import 'aurelia-polyfills';
 
+/**
+ * Command classes
+ *
+ * Command classes are responsible for executing an operation and for
+ * undoing the operation.
+ */
 
 class StartWarmup {
     static inject() {

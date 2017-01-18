@@ -4,6 +4,13 @@ import {All} from 'aurelia-dependency-injection';
 import {createFromFactory} from './di-util'
 import 'aurelia-polyfills';
 
+/**
+ * Command decorators
+ *
+ * Command decorators may be used to add properties to a command class instance.  Multiple
+ * decorators may be registered.
+ */
+
 // Interface
 class CommandDecorator {
 
