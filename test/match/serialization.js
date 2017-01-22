@@ -130,6 +130,10 @@ describe('serialize', () => {
                 it('should have same value', () => {
                     expect(compare.equal(match, playableMatch.match)).to.be.ok;
                 });
+
+                it('should have same JSON', () => {
+                    expect(match.value).to.be.eql(playableMatch.match.value);
+                });
             });
 
             describe('start match', () => {
@@ -141,6 +145,10 @@ describe('serialize', () => {
 
                 it('should have same value', () => {
                     expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+
+                it('should have same JSON', () => {
+                    expect(match.value).to.be.eql(playableMatch.match.value);
                 });
             });
 
@@ -168,6 +176,10 @@ describe('serialize', () => {
                 it('should have same value', () => {
                     expect(compare.equal(match, playableMatch.match)).to.be.ok;
                 });
+
+                it('should have same JSON', () => {
+                    expect(match.value).to.be.eql(playableMatch.match.value);
+                });
             });
 
             describe('win match', () => {
@@ -182,6 +194,10 @@ describe('serialize', () => {
 
                 it('should have same value', () => {
                     expect(compare.equal(match, playableMatch.match)).to.be.ok;
+                });
+
+                it('should have same JSON', () => {
+                    expect(match.value).to.be.eql(playableMatch.match.value);
                 });
             });
         });

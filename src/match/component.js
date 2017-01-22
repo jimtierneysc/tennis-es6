@@ -17,13 +17,18 @@ const _parent = new WeakMap();
 const _value = new WeakMap();
 
 class MatchComponent {
-    constructor(owner, parent, value) {
+    constructor(parent, value) {
+        let owner;
+        if (parent instanceof MatchComponentList) {
+            owner = parent.owner;
+        } else {
+            owner = parent;
+            parent = undefined;
+        }
         _owner.set(this, owner);
         _value.set(this, value || {});
         if (parent && parent.addChild) {
             parent.addChild(this);
-        } else {
-            _parent.set(this, parent);
         }
     }
 
@@ -66,14 +71,18 @@ class MatchComponent {
 }
 
 class MatchComponentList extends MatchComponent {
-    constructor(owner, parent, value) {
-        super(owner, parent, value || []);
+    constructor(parent, value) {
+        super(parent, value || []);
         _childList.set(this, []);
-        this.constructChildren();
+        this.constructChildren(value);
     }
 
-    constructChildren() {
-        this.value.forEach((i) => this.factory(i));
+    constructChildren(value) {
+        if (value)
+            value.forEach((i) => {
+                const child = this.factory(this.owner, i);
+                this.childList.push(child);
+            });
     }
 
     get childList() {
@@ -86,11 +95,7 @@ class MatchComponentList extends MatchComponent {
         const i = childList.indexOf(component);
         if (i >= 0) {
             childList.splice(i, 1);
-            // this._childRemoved(component);
-            const j = this.value.indexOf(component.value);
-            if (j >= 0) {
-                this.value.splice(j, 1);
-            }
+            this.value.splice(i, 1);
         }
     }
 
@@ -100,10 +105,7 @@ class MatchComponentList extends MatchComponent {
         }
         _parent.set(component, this);
         _childList.get(this).push(component);
-        const i = this.value.indexOf(component.value);
-        if (i < 0) {
-            this.value.push(component.value);
-        }
+        this.value.push(component.value);
     }
 
     get count() {
@@ -131,7 +133,8 @@ class MatchComponentList extends MatchComponent {
     }
 
     add() {
-        const result = this.factory();
+        const result = this.factory(this.owner);
+        this.addChild(result);
         return result;
     }
 
@@ -166,7 +169,7 @@ class MatchComponentList extends MatchComponent {
     }
 
     clear() {
-        while(this.count) {
+        while (this.count) {
             this.removeLast();
         }
     }

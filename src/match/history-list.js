@@ -24,8 +24,8 @@ class MatchHistoryList extends MatchHistory {
 }
 
 class MatchHistoryItem extends MatchComponent {
-    constructor(owner, value) {
-        super(owner, owner, value || {});
+    constructor(parent, value) {
+        super(parent, value || {});
     }
 
 }

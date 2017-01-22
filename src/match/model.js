@@ -15,10 +15,6 @@ import {MatchOptions} from './options'
 
 class SetGame extends MatchComponent {
 
-    constructor(parent, value) {
-        super(parent.owner, parent, value);
-    }
-
     get winnerId() {
         return this.value.winner;
     }
@@ -56,20 +52,16 @@ class SetGame extends MatchComponent {
 }
 
 class SetGames extends MatchComponentList {
-    constructor(parent, value) {
-        super(parent.owner, parent, value);
-    }
-
-    factory(value) {
-        return new SetGame(this, value);
+    factory(owner, value) {
+        return new SetGame(owner, value);
     }
 }
 
 const _games = new WeakMap();
 class MatchSet extends MatchComponent {
     constructor(parent, value) {
-        super(parent.owner, parent, value);
-        _games.set(this, new SetGames(this, this.initArray('games')));
+        super(parent, value);
+        _games.set(this, new SetGames(this.owner, this.initArray('games')));
         this.initValue('scores', [0, 0]);
         this.initValue('winner', undefined);
     }
@@ -109,21 +101,12 @@ class MatchSet extends MatchComponent {
 }
 
 class MatchSets extends MatchComponentList {
-    constructor(owner, value) {
-        super(owner, undefined, value);
-    }
-
-    factory(value) {
-        return new MatchSet(this, value);
+    factory(owner, value) {
+        return new MatchSet(owner, value);
     }
 }
 
 class PlayerRef extends MatchComponent {
-
-    constructor(parent, value) {
-        super(parent.owner, parent, value);
-    }
-
     get id() {
         return this.value.id;
     }
@@ -134,12 +117,8 @@ class PlayerRef extends MatchComponent {
 }
 
 class PlayerRefList extends MatchComponentList {
-    constructor(parent, value) {
-        super(parent.owner, parent, value);
-    }
-
-    factory(value) {
-        return new PlayerRef(this, value);
+    factory(owner, value) {
+        return new PlayerRef(owner, value);
     }
 }
 
@@ -147,9 +126,9 @@ const _players = new WeakMap();
 
 class PlayerRefs extends MatchComponent {
 
-    constructor(owner, parent, value) {
-        super(owner, parent, value);
-        _players.set(this, new PlayerRefList(this, this.initArray('players')));
+    constructor(parent, value) {
+        super(parent, value);
+        _players.set(this, new PlayerRefList(this.owner, this.initArray('players')));
     }
 
     get players() {
@@ -159,19 +138,15 @@ class PlayerRefs extends MatchComponent {
     clear() {
         this.players.clear();
     }
-
 }
 
 class Servers extends PlayerRefs {
-    constructor(owner, value) {
-        super(owner, undefined, value);
-    }
 }
 
 class Opponent extends PlayerRefs {
 
     constructor(parent, value, id) {
-        super(parent.owner, parent, value);
+        super(parent, value);
         this.value.id = id;
     }
 
@@ -185,10 +160,10 @@ const _first = new WeakMap();
 const _second = new WeakMap();
 
 class Opponents extends MatchComponent {
-    constructor(owner, value) {
-        super(owner, undefined, value || {});
-        _first.set(this, new Opponent(this, this.initObj('first'), 1));
-        _second.set(this, new Opponent(this, this.initObj('second'), 2));
+    constructor(parent, value) {
+        super(parent, value || {});
+        _first.set(this, new Opponent(this.owner, this.initObj('first'), 1));
+        _second.set(this, new Opponent(this.owner, this.initObj('second'), 2));
     }
 
     get first() {
@@ -230,15 +205,18 @@ const _opponents = new WeakMap();
 class Match extends MatchComponent {
 
     constructor(value, options) {
-        super(undefined, undefined, value || {options: options || {}});
+        super(undefined, value || {options: options || {}});
         _sets.set(this, new MatchSets(this, this.initArray('sets')));
         _servers.set(this, new Servers(this, this.initObj('servers')));
+        const hasOpponents = this.value.opponents;
         _opponents.set(this, new Opponents(this, this.initObj('opponents')));
         this.initValue('scores', [0, 0]);
         this.initValue('warmingUp', undefined);
         this.initValue('winner', undefined);
         this.observable = new MatchObservable();
-        this.addOpponents();
+        if (!hasOpponents) {
+            this.addOpponents();
+        }
     }
 
 
